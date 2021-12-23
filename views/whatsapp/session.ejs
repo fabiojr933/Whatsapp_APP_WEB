@@ -1,0 +1,152 @@
+<%- include('../partials/header.ejs') %>
+<link rel="apple-touch-icon" sizes="194x194" href="https://web.whatsapp.com/apple-touch-icon.png" type="image/png">
+<link rel="stylesheet" id="style" href="/assets/css/qrcode.css">
+</head>
+  <body>
+    <%- include('../partials/navbar.ejs') %>
+      <%- include('../partials/menu.ejs') %>
+
+
+        <main id="main" class="main">
+
+          <div class="pagetitle">          
+          </div>
+
+          <section class="section">
+            <div class="row">
+              <div class="col-lg-12">
+                <div class="card">
+                  <div class="card-body">
+                    <h5 class="card-title d-flex justify-content-center">Para usar o Whatsapp no sistema WEB</h5>
+                  </div>
+                </div>
+              </div>
+              <div class="col-lg-12">
+                <div class="card">
+                  <div class="card-body">
+                                          
+                         
+                            <div class="entry-main">
+                              <div class="qrcode">
+                                <img alt="Leia o QRCODE" id="base64" style="display: block;"
+                                  src="/assets/img/qr-start.png">
+                              </div>
+
+                              <div class="entry-text" style="text-align: center;">
+                                <div class="entry-title">Abra o WhatsApp no seu celular.</div>
+                                <div class="entry-subtitle">Use o WhatsApp no seu telefone para ler o qrcode</div>
+
+                                <div class="entry-controls">
+                                  <label> <button type="button" id="buttonStart" class="btn btn-primary"> Conectar nova
+                                      sessão</button> </label>
+                                  <div class="hint">Será iniciado uma sessão com nome token da empresa</div>
+                                </div>
+
+                              </div>
+                            </div>                   
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </section>
+
+        </main>
+        <%- include('../partials/footer.ejs') %>
+          <script src="https://code.jquery.com/jquery-3.6.0.min.js" crossorigin="anonymous"></script>
+          <script
+            src="https://cdn.jsdelivr.net/npm/gasparesganga-jquery-loading-overlay@2.1.7/dist/loadingoverlay.min.js"
+            crossorigin="anonymous"></script>
+          <script src="https://cdn.socket.io/4.3.2/socket.io.min.js"
+            integrity="sha384-KAZ4DtjNhLChOB/hxXuKqhMLYvx3b5MlT55xPEiNmREKRzeEm+RVPlTnAn0ajQNs"
+            crossorigin="anonymous"></script>
+
+          <script>
+
+            $(document).ready(() => {
+
+              const SERVIDOR = `http://192.168.0.122:3333`
+              const apitoken = `12345`
+              const session = `fabio1234`
+              const sessionkey = `fabio1234`
+              const wh_connect = `https://webhook.site/8ed93a9a-e5c3-4f6c-8b4f-c4ecb9c9ff0b`
+              const wh_message = `https://webhook.site/8ed93a9a-e5c3-4f6c-8b4f-c4ecb9c9ff0b`
+              const wh_status = `https://webhook.site/8ed93a9a-e5c3-4f6c-8b4f-c4ecb9c9ff0b`
+              const wh_qrcode = `https://webhook.site/8ed93a9a-e5c3-4f6c-8b4f-c4ecb9c9ff0b`
+
+              try {
+
+                socket = io(`${SERVIDOR}`, {
+                  withCredentials: false,
+                });
+
+              } catch (error) {
+                console.log('API Desconectada!!! cd /opt/MyZap2.x.x.x node start index.js')
+              }
+
+              $(`#buttonStart`).on(`click`, async () => {
+                await requestMyZap(apitoken, session, sessionkey, wh_connect, wh_message, wh_status, wh_qrcode, 'start')
+              })
+
+              async function requestMyZap(apitoken, sessionkey, session, wh_connect, wh_message, wh_status, wh_qrcode, action) {
+
+                let URL = `${SERVIDOR}/${action}`
+
+                socket.on(`whatsapp-status`, (status) => {
+                  try {
+                    console.log(status)
+                  } catch (error) {
+                    console.log('API Desconectada!!! cd /opt/MyZap2.x.x.x node start index.js')
+                  }
+                })
+
+                socket.on(`qrCode`, (qrCode) => {
+                  if (qrCode.session == session) {
+                    $(`#base64`).attr(`src`, qrCode?.data);
+                    $(`#base64`).LoadingOverlay("hide")
+                    $(`#buttonStart`).attr(`disabled`, true)
+                    console.log(qrCode);
+                  }
+                })
+
+                switch (action) {
+                  case `start`:
+                    await $.post({
+                      url: `${URL}`,
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json', 'apitoken': `${apitoken ?? ''}`, 'sessionkey': `${sessionkey ?? ''}` },
+                      data: JSON.stringify({
+                        session: session ?? '',
+                        wh_connect: wh_connect ?? '',
+                        wh_message: wh_message ?? '',
+                        wh_status: wh_status ?? '',
+                        wh_qrcode: wh_qrcode ?? '',
+                      }),
+                      beforeSend: function (data, xhr) {
+                        $(`#base64`).LoadingOverlay("show")
+                      },
+                      success: function (data) {
+
+                        $(`#buttonStart`).attr(`disabled`, false)
+                        $(`#base64`).LoadingOverlay("hide")
+
+                      },
+                      error: function (error) {
+                        $(`#base64`).LoadingOverlay("hide")
+                      },
+                    })
+                    break;
+
+                  default:
+                    console.log('requisição inválida.')
+                    break;
+                }
+
+              }
+
+            });
+
+          </script>
+  </body>
+
+  </html>
