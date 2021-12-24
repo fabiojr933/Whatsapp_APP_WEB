@@ -4,10 +4,12 @@ const app = express();
 const flash = require('express-flash');
 const bodyParser = require('body-parser');
 const session = require('express-session');
+const adminAuth = require('./src/middlewares/adminAuth');
 
 const WhatsappController = require('./src/controllers/whatsappController');
 const EmpresaController = require('./src/controllers/CompanyController');
 const LoginController = require('./src/controllers/LoginController');
+const { user } = require('pg/lib/defaults');
 
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
@@ -21,8 +23,10 @@ app.use(session({
 }));
 app.use(flash());
 
-app.get('/', (req, res) => {
-    res.render('index');
+app.get('/', adminAuth, (req, res) => {
+    var sucesso = req.flash('sucesso');
+    sucesso = (sucesso == undefined || sucesso.length == 0) ? undefined : sucesso; 
+    res.render('index', {sucesso: sucesso});
 });
 app.use('/', WhatsappController);
 app.use('/', EmpresaController);

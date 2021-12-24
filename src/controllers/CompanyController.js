@@ -3,9 +3,10 @@ const router = express.Router();
 const flash = require('express-flash');
 const database = require('../database/database');
 const companyModel = require('../models/CompanyModel');
+const adminAuth = require('../middlewares/adminAuth');
 
 // router para get e getAll
-router.get('/company', (req, res) => {
+router.get('/company', adminAuth, (req, res) => {
 
     var erro = req.flash('erro');
     var sucesso = req.flash('sucesso');
@@ -20,10 +21,10 @@ router.get('/company', (req, res) => {
     });
 });
 
-router.get('/company/new', (req, res) => {
+router.get('/company/new', adminAuth, (req, res) => {
     res.render('company/new');
 });
-router.get('/company/edit/:id', (req, res) => {
+router.get('/company/edit/:id', adminAuth, (req, res) => {
     var id = parseInt(req.params.id);
     if(id == undefined || id == '' || isNaN(id)){
         var erro = 'Erro ao buscar empresa, chame o suporte tecnico';
@@ -43,7 +44,7 @@ router.get('/company/edit/:id', (req, res) => {
 
 
 // router para insert e update
-router.post('/company/new', (req, res) => {
+router.post('/company/new', adminAuth, (req, res) => {
     var { nome_empresa, email, senha, cnpj, servidor, apitoken, session, webhook, via_importacao, via_banco_dados } = req.body;
     var erro = 'Ops aconteceu algum erro, ao salvar os dados, chama o suporte tecnico';
     var suscesso = 'Dados salvo com sucesso';
@@ -79,7 +80,7 @@ router.post('/company/new', (req, res) => {
     }
     res.redirect('/company');
 });
-router.post('/company/delete/:id', (req, res) => {
+router.post('/company/delete/:id', adminAuth, (req, res) => {
     var id = parseInt(req.params.id);
     var erro;
     var sucesso;
@@ -95,7 +96,7 @@ router.post('/company/delete/:id', (req, res) => {
         res.redirect('/company');
     }
 });
-router.post('/company/update', (req, res) => {
+router.post('/company/update', adminAuth, (req, res) => {
     var erro = 'Erro ao atualizar empresa, chame o suporte tecnico';
     var sucesso = 'Empresa atualizado com sucesso';
     var { id, nome_empresa, email, senha, cnpj, servidor, apitoken, session, webhook, via_importacao, via_banco_dados } = req.body;   

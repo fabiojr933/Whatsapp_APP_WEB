@@ -9,8 +9,14 @@
 
           <div class="pagetitle">
             <h1>Pagina Home</h1>           
-          </div>
-
+          </div>  
+          <% if(sucesso) {%>
+            <div class="alert alert-primary alert-dismissible fade show" role="alert">
+                <%=sucesso%>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"
+                        aria-label="Close"></button>
+            </div>
+            <% } %>
           <section class="section">
             <div class="row">
               <div class="col-lg-6">
@@ -33,7 +39,7 @@
           </section>
 
         </main>
-        <%- include('partials/footer.ejs') %>
+        <%- include('partials/footer.ejs') %>        
   </body>
 
   </html>
