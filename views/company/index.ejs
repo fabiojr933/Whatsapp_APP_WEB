@@ -8,8 +8,6 @@
 
                 <main id="main" class="main">
 
-
-
                     <div class="pagetitle">
                     </div>
                     <section class="section">
@@ -19,33 +17,69 @@
                                 <div class="card">
                                     <div class="card-body">
                                         <h5 class="card-title text-center">Lista de empresas</h5>
-                                        <div class="d-flex justify-content-end">
-                                            <a href="/company/new" type="submit" class="btn btn-primary">Nova
-                                                empresa</a>
-                                        </div><br>
-                                        <table id="datatable" class="table datatable">
-                                            <thead>
-                                                <tr>
-                                                    <th scope="col">Id</th>
-                                                    <th scope="col">Empresa</th>
-                                                    <th scope="col">Cnpj</th>
-                                                    <th scope="col">email</th>
-                                                    <th scope="col">Acão</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr>
-                                                    <th scope="row">1</th>
-                                                    <td>Brandon Jacob</td>
-                                                    <td>Designer</td>
-                                                    <td>28</td>
-                                                    <td>
-                                                        <a title="Editar" href="/"><i class="fas fa-edit"></i></a>
-                                                        <a title="Excluir" href="/"><i class="fas fa-trash-alt"></i></a>
-                                                    </td>
-                                                </tr>                                                
-                                            </tbody>
-                                        </table>
+
+                                        <% if(sucesso) {%>
+                                            <div class="alert alert-primary alert-dismissible fade show" role="alert">
+                                                <%=sucesso%>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                                        aria-label="Close"></button>
+                                            </div>
+                                            <% } %>
+
+                                                <% if(erro) {%>
+                                                    <div class="alert alert-primary alert-dismissible fade show"
+                                                        role="alert">
+                                                        <%=erro%>
+                                                            <button type="button" class="btn-close"
+                                                                data-bs-dismiss="alert" aria-label="Close"></button>
+                                                    </div>
+                                                    <% } %>
+
+
+                                                        <div class="d-flex justify-content-end">
+                                                            <a href="/company/new" type="submit"
+                                                                class="btn btn-primary">Nova
+                                                                empresa</a>
+                                                        </div><br>
+                                                        <table id="datatable" class="table datatable">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th scope="col">Id</th>
+                                                                    <th scope="col">Empresa</th>
+                                                                    <th scope="col">Cnpj</th>
+                                                                    <th scope="col">email</th>
+                                                                    <th scope="col">Acão</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <% dados.forEach(element=> { %>
+                                                                    <tr>
+                                                                        <th scope="row">
+                                                                            <%= element.id %>
+                                                                        </th>
+                                                                        <td>
+                                                                            <%= element.nome_empresa %>
+                                                                        </td>
+                                                                        <td>
+                                                                            <%= element.cnpj %>
+                                                                        </td>
+                                                                        <td>
+                                                                            <%= element.email %>
+                                                                        </td>
+                                                                        <td>
+                                                                            <a title="Editar"
+                                                                                href="/company/edit/<%= element.id %>"><i
+                                                                                    class="fas fa-edit"></i></a>
+                                                                            <form
+                                                                                action="/company/delete/<%= element.id %>" style="display: inline;" onsubmit="confirmDelecao(event, this)" method="post">
+                                                                                <input type="hidden" name="id" value="<%= element.id %>">  
+                                                                                <button  style="border: none;" title="Excluir"><i class="fas fa-trash-alt"></i></button>
+                                                                            </form>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <% }) %>
+                                                            </tbody>
+                                                        </table>
                                     </div>
                                 </div>
 
@@ -56,6 +90,13 @@
                 <%- include('../partials/footer.ejs') %>
 
                     <script>
+                        function confirmDelecao(event, form) {
+                            event.preventDefault();
+                            var decisao = confirm('Deseja realmente excluir ? ');
+                            if (decisao) {
+                                form.submit();
+                            }
+                        }
                         $(document).ready(function () {
                             $('#datatable').DataTable({
                                 "language": {
@@ -84,7 +125,7 @@
                                 }
                             });
 
-                        });
+                        });                       
                     </script>
     </body>
 

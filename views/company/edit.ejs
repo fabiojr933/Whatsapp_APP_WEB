@@ -9,7 +9,7 @@
         <main id="main" class="main">
 
           <div class="pagetitle">
-            <h1>Nova Empresa</h1>
+            <h1>Editar Empresa</h1>
           </div>
 
           <div class="card">
@@ -18,51 +18,56 @@
               <div class="d-flex justify-content-end">
                 <a href="/company" type="submit" class="btn btn-primary ">Voltar</a>
               </div><br>
-              <form action="/company/new" method="post">
+              <form action="/company/update %>" method="post">
                 <div class="row">
                   <div class="col-6">
                     <label class="form-label">Name</label>
-                    <input type="text" class="form-control" name="nome_empresa" placeholder="Nome da empresas" required>
+                    <input type="text" class="form-control" name="nome_empresa" placeholder="Nome da empresas" required value="<%= dados[0].nome_empresa %>">
+                    <input type="hidden" name="id"  required value="<%= dados[0].id %>">
                   </div>
                   <div class="col-6">
                     <label class="form-label">CNPJ</label>
-                    <input type="number" class="form-control" name="cnpj" placeholder="CNPJ" required>
+                    <input type="number" class="form-control" name="cnpj" placeholder="CNPJ" required value="<%= dados[0].cnpj %>">
                   </div>
                 </div>
                 <div class="row">
                   <div class="col-6">
                     <label class="form-label">Email</label>
-                    <input type="text" class="form-control" name="email" placeholder="Email" required>
+                    <input type="text" class="form-control" name="email" placeholder="Email" required value="<%= dados[0].email %>">
                   </div>
                   <div class="col-6">
                     <label class="form-label">Senha</label>
-                    <input type="password" class="form-control" name="senha" placeholder="Senha" required>
+                    <input type="password" class="form-control" name="senha" placeholder="Senha" required >
                   </div>
                 </div>
 
                 <div class="row">
                   <div class="col-4">
                     <label class="form-label">Servidor</label>
-                    <input type="text" class="form-control" name="servidor" placeholder="servidor" required>
+                    <input type="text" class="form-control" name="servidor" placeholder="servidor" required value="<%= dados[0].servidor %>">
                   </div>
                   <div class="col-4">
                     <label class="form-label">API Token</label>
-                    <input type="text" class="form-control" name="apitoken" placeholder="apitoken" required>
+                    <input type="text" class="form-control" name="apitoken" placeholder="apitoken" required value="<%= dados[0].apitoken %>">
                   </div>
                   <div class="col-4">
                     <label class="form-label">Session</label>
-                    <input type="text" class="form-control" name="session" placeholder="session" required>
+                    <input type="text" class="form-control" name="session" placeholder="session" required value="<%= dados[0].session %>">
                   </div>
                 </div>
 
                 <div class="row">
                   <div class="col-4">
                     <label class="form-label">Webhook</label>
-                    <input type="text" class="form-control" name="webhook" placeholder="webhook" required>
+                    <input type="text" class="form-control" name="webhook" placeholder="webhook" required value="<%= dados[0].webhook %>">
                   </div>
                   <div class="col-4"><br><br>
                     <div class="form-check">
-                      <input class="form-check-input" type="checkbox" name="via_importacao">
+                        <% if(dados[0].via_importacao == 'sim') { %>
+                            <input class="form-check-input" type="checkbox" name="via_importacao" checked >
+                      <% }else{ %>
+                        <input class="form-check-input" type="checkbox" name="via_importacao" >
+                      <% } %>                      
                       <label class="form-check-label" for="gridCheck">
                         Via importação
                       </label>
@@ -70,7 +75,11 @@
                   </div>
                   <div class="col-4"><br><br>
                     <div class="form-check">
-                      <input class="form-check-input" type="checkbox" name="via_banco_dados">
+                        <% if(dados[0].via_banco_dados == 'sim') { %>
+                      <input class="form-check-input" type="checkbox" name="via_banco_dados" checked>
+                      <% }else{ %>
+                        <input class="form-check-input" type="checkbox" name="via_banco_dados">
+                        <% } %>          
                       <label class="form-check-label" for="gridCheck">
                         Via Integração banco de dados
                       </label>
