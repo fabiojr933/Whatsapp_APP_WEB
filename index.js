@@ -1,5 +1,6 @@
 const express  = require('express');
 const app = express();
+
 const flash = require('express-flash');
 const bodyParser = require('body-parser');
 const session = require('express-session');
@@ -19,7 +20,6 @@ app.use(session({
     cookie: {maxAge: 30000}
 }));
 app.use(flash());
-
 
 app.get('/', (req, res) => {
     res.render('index');
