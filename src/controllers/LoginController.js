@@ -14,8 +14,8 @@ router.post('/authrnticate', (req, res) => {
     var senha = req.body.senha;
     var erro;
     var sucesso;
-
-    database.where({ email: email, senha: senha }).table('empresa').then(dados => {
+   
+    database.where({ email: email, senha: senha }).table('empresa').then(dados => {      
         if (dados[0].email == email && dados[0].senha == senha) {
             sucesso = 'Bem vindo(a) ' + dados[0].nome_empresa;
             req.session.user = {

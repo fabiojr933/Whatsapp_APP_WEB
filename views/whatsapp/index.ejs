@@ -1,0 +1,55 @@
+<%- include('../partials/header.ejs') %>
+</head>
+  <body>
+    <%- include('../partials/navbar.ejs') %>
+      <%- include('../partials/menu.ejs') %>
+
+
+        <main id="main" class="main">        
+          <section class="section">
+            <form action="/whatsapp/send" method="post">             
+              <input type="hidden" name="dados_body" value="<%= dados_body %>">
+              <input type="hidden" name="cpf_cnpj_empresa" value="<%= cpf_cnpj_empresa %>">
+              <input type="hidden" name="codigo_mensagem" value="<%= codigo_mensagem %>">
+            <div class="row">                      
+                 <button type="submit" class="btn btn-primary">Enviar Mensagem</button><br>
+                 <br>  <% dados_body.forEach(body => { %> 
+                
+              <div class="col-lg-6">
+                <div class="card">
+                  <div class="card-body">
+                    <h5 class="card-title">Dados da mensagem</h5>
+                   
+                    <h6 class="card-title" name="mensagem" value="<%= dados_Header[0] %>" ><%= dados_Header[0] %></h6>
+                    <h6 class="card-subtitle mb-2 text-muted"> </h6>
+                    <p class="card-text"><%= body[0] %></p>
+                    <div class="row">
+                      <div class="col-lg-6 col-md-4 label "></div>
+                      <div class="col-lg-5 col-md-8"></div>
+                    </div>  
+                    <div class="row">
+                      <div style='font-size:12px;' class="col-lg-3 col-md-4 label"><%= dados_Header[1] %></div>
+                      <div style='font-size:15px;' class="col-lg-9 col-md-8"><%= body[1] %></div>
+                    </div> 
+                    <div class="row">
+                      <div style='font-size:12px;' class="col-lg-3 col-md-4 label"><%= dados_Header[2] %></div>
+                      <div style='font-size:15px;' class="col-lg-9 col-md-8"><%= body[2] %></div>
+                    </div> 
+                    <div class="row">
+                      <div style='font-size:12px;' class="col-lg-3 col-md-4 label"><%= dados_Header[3] %></div>
+                      <div style='font-size:15px;' class="col-lg-9 col-md-8"><%= body[3] %></div>
+                    </div>                    
+                  </div>
+                </div>
+              </div>            
+              <% }); %>
+            </div>
+          </form>
+          </section>
+
+
+        </main>
+        <%- include('../partials/footer.ejs') %>  
+         </body>
+
+  </html>

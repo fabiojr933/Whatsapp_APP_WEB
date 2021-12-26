@@ -26,6 +26,7 @@ app.use(flash());
 app.get('/', adminAuth, (req, res) => {
     var sucesso = req.flash('sucesso');
     sucesso = (sucesso == undefined || sucesso.length == 0) ? undefined : sucesso; 
+    
     res.render('index', {sucesso: sucesso});
 });
 app.use('/', WhatsappController);
