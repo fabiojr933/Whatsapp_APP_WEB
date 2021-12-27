@@ -7,13 +7,10 @@ const adminAuth = require('../middlewares/adminAuth');
 
 // router para get e getAll
 router.get('/company', adminAuth, (req, res) => {
-
     var erro = req.flash('erro');
     var sucesso = req.flash('sucesso');
-
     erro = (erro == undefined || erro.length == 0) ? undefined : erro;
     sucesso = (sucesso == undefined || sucesso.length == 0) ? undefined : sucesso;
-
     database.select('*').table('empresa').then(dados => {
         res.render('company/index', { erro: erro, sucesso: sucesso, dados: dados });
     }).catch(erro => {
@@ -24,6 +21,7 @@ router.get('/company', adminAuth, (req, res) => {
 router.get('/company/new', adminAuth, (req, res) => {
     res.render('company/new');
 });
+
 router.get('/company/edit/:id', adminAuth, (req, res) => {
     var id = parseInt(req.params.id);
     if(id == undefined || id == '' || isNaN(id)){
@@ -40,8 +38,6 @@ router.get('/company/edit/:id', adminAuth, (req, res) => {
         res.redirect('/company');
     }); 
 });
-
-
 
 // router para insert e update
 router.post('/company/new', adminAuth, (req, res) => {
@@ -80,6 +76,7 @@ router.post('/company/new', adminAuth, (req, res) => {
     }
     res.redirect('/company');
 });
+
 router.post('/company/delete/:id', adminAuth, (req, res) => {
     var id = parseInt(req.params.id);
     var erro;
@@ -96,6 +93,7 @@ router.post('/company/delete/:id', adminAuth, (req, res) => {
         res.redirect('/company');
     }
 });
+
 router.post('/company/update', adminAuth, (req, res) => {
     var erro = 'Erro ao atualizar empresa, chame o suporte tecnico';
     var sucesso = 'Empresa atualizado com sucesso';

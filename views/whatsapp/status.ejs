@@ -1,0 +1,87 @@
+<%- include('../partials/header.ejs') %>
+    </head>
+
+    <body>
+        <%- include('../partials/navbar.ejs') %>
+            <%- include('../partials/menu.ejs') %>
+
+
+                <main id="main" class="main">
+
+                    <div class="pagetitle">
+                        <h1></h1>
+                    </div>
+                    <% if(sucesso) {%>
+                        <div class="alert alert-primary alert-dismissible fade show" role="alert">
+                            <%=sucesso%>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                    aria-label="Close"></button>
+                        </div>
+                        <% } %>
+                            <section class="section">
+                                <div class="row">
+                                    <div class="col-lg-6">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <h5 class="card-title" style="text-align: center;">Status da Sessão</h5>
+                                                <hr>
+                                                <div class="row">
+                                                    <div style='font-size:15px;' class="col-lg-3 col-md-4 label">NOME
+                                                        EMPRESA</div>
+                                                    <div style='font-size:15px;' class="col-lg-9 col-md-8">
+                                                        <%= nome_empresa %>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div style='font-size:15px;' class="col-lg-3 col-md-4 label">CNPJ
+                                                        EMPRESA:</div>
+                                                    <div style='font-size:15px;' class="col-lg-9 col-md-8">
+                                                        <%= cnpj_empresa %>
+                                                    </div>
+                                                </div><br><br>
+                                                <div class="row">
+                                                    <div style='font-size:15px;' class="col-lg-3 col-md-4 label">STATUS
+                                                    </div>
+                                                    <div style='font-size:15px;' class="col-lg-9 col-md-8">
+                                                        <% if(status){ %>
+                                                            <button type="button" class="btn btn-primary">Empresa
+                                                                online</button>
+                                                            <% }else{ %>
+                                                                <button type="button" class="btn btn-danger">Large
+                                                                    button</button>
+                                                                <% } %>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6">
+
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <h5 class="card-title">Encerrar Sessão</h5>
+                                                <hr><br><br><br><br>
+                                                <div style='font-size:15px;' class="col-lg-9 col-md-8"></div>
+                                                <div class="row">
+                                                    <div style='font-size:15px;' class="col-lg-3 col-md-4 label">STATUS
+                                                    </div>
+                                                    <div style='font-size:15px;' class="col-lg-9 col-md-8">
+                                                     
+                                                            <a href="/whatsapp/session/logout"
+                                                                class="btn btn-danger">Encerrar</a>
+                                                       
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                                </div>
+                            </section>
+
+                </main>
+                <%- include('../partials/footer.ejs') %>
+    </body>
+
+    </html>

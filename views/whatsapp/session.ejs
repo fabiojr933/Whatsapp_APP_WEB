@@ -68,7 +68,7 @@
 
             $(document).ready(() => {
             
-              const SERVIDOR = `http://192.168.1.3:3333`
+              const SERVIDOR = `http://192.168.0.122:3333`
               const apitoken = `12345`
               const session = `fabio369`
               const sessionkey = `fabio369`
@@ -125,7 +125,7 @@
                         wh_status: wh_status ?? '',
                         wh_qrcode: wh_qrcode ?? '',
                       }),
-                      beforeSend: function (data, xhr) {
+                      beforeSend: function (data, xhr) {                       
                         $(`#base64`).LoadingOverlay("show")
                       },
                       success: function (data) {

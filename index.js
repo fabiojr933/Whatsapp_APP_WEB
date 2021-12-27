@@ -9,17 +9,18 @@ const adminAuth = require('./src/middlewares/adminAuth');
 const WhatsappController = require('./src/controllers/whatsappController');
 const EmpresaController = require('./src/controllers/CompanyController');
 const LoginController = require('./src/controllers/LoginController');
-const { user } = require('pg/lib/defaults');
+
 
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
 app.use(session({
     secret: 'keyboard cat',
     resave: false,
     saveUninitialized: true,
-    cookie: {maxAge: 30000}
+    cookie: {maxAge: 3000000}
 }));
 app.use(flash());
 

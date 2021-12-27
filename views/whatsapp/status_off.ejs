@@ -1,0 +1,68 @@
+<%- include('../partials/header.ejs') %>
+    </head>
+
+    <body>
+        <%- include('../partials/navbar.ejs') %>
+            <%- include('../partials/menu.ejs') %>
+
+
+                <main id="main" class="main">
+
+                    <div class="pagetitle">
+                        <h1></h1>
+                    </div>
+                    <% if(erro) {%>
+                        <div class="alert alert-primary alert-dismissible fade show" role="alert">
+                            <%=erro%>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                    aria-label="Close"></button>
+                        </div>
+                        <% } %>
+                        
+                            <section class="section">
+                                <div class="row">
+                                    <div class="col-lg-6">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <h5 class="card-title" style="text-align: center;">Status da Sessão</h5>
+                                                <hr>
+                                                <div class="row">
+                                                    <div style='font-size:15px;' class="col-lg-3 col-md-4 label">NOME EMPRESA</div>
+                                                    <div style='font-size:15px;' class="col-lg-9 col-md-8">
+                                                        <%= nome_empresa %>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div style='font-size:15px;' class="col-lg-3 col-md-4 label">CNPJ EMPRESA:</div>
+                                                    <div style='font-size:15px;' class="col-lg-9 col-md-8">
+                                                        <%= cnpj_empresa %>
+                                                    </div>
+                                                </div><br><br>
+                                                <div class="row">
+                                                    <div style='font-size:15px;' class="col-lg-3 col-md-4 label">STATUS</div>
+                                                    <div style='font-size:15px;' class="col-lg-9 col-md-8">
+                                                        <% if(status){  %>
+                                                            <button type="button" class="btn btn-danger">Empresa online</button>     
+                                                        <% } %>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6">
+
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <h5 class="card-title">Pagina Index2</h5>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </section>
+
+                </main>
+                <%- include('../partials/footer.ejs') %>
+    </body>
+
+    </html>
