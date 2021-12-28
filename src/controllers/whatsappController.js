@@ -7,6 +7,9 @@ const Process = require('../middlewares/Process');
 const database = require('../database/database');
 var axios = require('axios');
 
+
+
+
 router.get('/whatsapp/session', adminAuth, (req, res) => {
   var cnpj = req.session.user.cnpj;
   database.select(['apitoken', 'servidor', 'session', 'webhook']).where({ 'cnpj': cnpj }).table('empresa').then(dados_empresa => {
@@ -52,8 +55,8 @@ router.get('/whatsapp/status', (req, res) => {
           'sessionkey': session_empresa
         },
         data: data
-      }      
-      axios(config).then(response => {       
+      }
+      axios(config).then(response => {
         if (response.data.status == 'inChat') {
           var status = 'On-line';
           res.render('whatsapp/status', { erro: erro, sucesso: sucesso, nome_empresa: nome_empresa, cnpj_empresa: cnpj_empresa, status: status });
@@ -71,37 +74,37 @@ router.get('/whatsapp/status', (req, res) => {
   });
 });
 
-router.get('/whatsapp/session/logout', (req, res) => { 
+router.get('/whatsapp/session/logout', (req, res) => {
   var cnpj = req.session.user.cnpj;
-  database.select('*').where({ 'cnpj': cnpj }).table('empresa').then(dados => {   
+  database.select('*').where({ 'cnpj': cnpj }).table('empresa').then(dados => {
     var session_empresa = dados[0].session;
-    var servidor_empresa = dados[0].servidor; 
+    var servidor_empresa = dados[0].servidor;
     if (session_empresa == undefined || session_empresa == '') {
       erro = 'Não foi poossivel encontrar a sessão da empresa \n chame o suporte tecnico para mais detalhe';
       req.flash('erro', erro);
       res.redirect('/', { erro: erro });
-    }else{
+    } else {
       var data = {
-        'session': session_empresa        
+        'session': session_empresa
       }
       console.log(data);
       var config = {
         method: 'POST',
         url: servidor_empresa + '/logout',
-        headers:{
-          'sessionkey': session_empresa         
+        headers: {
+          'sessionkey': session_empresa
         },
         data: data
       }
       console.log(config);
-      axios(config).then(response => {       
+      axios(config).then(response => {
         console.log(response)
         sucesso = 'Sessão finalizado com sucesso';
-        req.flash('sucesso', sucesso);     
-       res.redirect('/');
+        req.flash('sucesso', sucesso);
+        res.redirect('/');
       }).catch(erro => {
         erro = 'Não foi poossivel encerrar a sessão da empresa \n chame o suporte tecnico para mais detalhe';
-        req.flash('erro', erro); 
+        req.flash('erro', erro);
         console.log(erro);
         res.redirect('/');
       });
@@ -113,6 +116,68 @@ router.get('/whatsapp/session/logout', (req, res) => {
   });
 });
 
+router.get('/whatsapp/contact/search', (req, res) => {
+  var sucesso = req.flash('sucesso');
+  sucesso = sucesso == undefined || sucesso.length == 0 || sucesso == '' ? undefined : sucesso;
+  database.select('*').table('contato').then(dados => {
+    res.render('whatsapp/contact', { sucesso: sucesso, dados: dados });
+  }).catch(err => {
+    erro = 'Ops! ocorreu algum problema ao importar os contatos \n para mais detelhe mais entre em contato com o suporte tecnico';
+    req.flash('erro', erro);
+    res.redirect('/whatsapp/contact/search');
+  });
+});
+router.get('/whatsapp/contact/import', (req, res) => {
+  var cnpj = req.session.user.cnpj;
+  database.select('*').where({ 'cnpj': cnpj }).table('empresa').then(dados => {
+    var session_empresa = dados[0].session;
+    var servidor_empresa = dados[0].servidor;
+    if (session_empresa == undefined || session_empresa == '') {
+      erro = 'Não foi poossivel encontrar a sessão da empresa \n chame o suporte tecnico para mais detalhe';
+      req.flash('erro', erro);
+      res.redirect('/', { erro: erro });
+    } else {
+      var data = {
+        'session': session_empresa
+      }
+      console.log(data);
+      var config = {
+        method: 'POST',
+        url: servidor_empresa + '/getAllContacts',
+        headers: {
+          'sessionkey': session_empresa
+        },
+        data: data
+      }
+      console.log(config);
+      axios(config).then(response => {
+        response.data.contacts.forEach(dados => {
+          var nome = dados.name;
+          var telefone = dados.phone.substr(2, 10);
+          database.insert({ 'nome': nome, 'telefone': telefone, 'empresa_cnpj': cnpj }).into('contato').then(res => {
+          }).catch(err => {
+            erro = 'Ops! ocorreu algum problema ao importar os contatos \n para mais detelhe mais entre em contato com o suporte tecnico';
+            req.flash('erro', erro);
+            res.redirect('/whatsapp/contact/search');
+          });
+        })
+        sucesso = 'Todos os contatos importados com sucesso';
+        req.flash('sucesso', sucesso);
+        res.redirect('/whatsapp/contact/search');
+
+      }).catch(er => {
+        erro = 'Ops! ocorreu algum problema ao importar os contatos \n para mais detelhe mais entre em contato com o suporte tecnico';
+        req.flash('erro', erro);
+        console.log(er);
+        res.redirect('/');
+      });
+    }
+  }).catch(erro => {
+    erro = 'Ops! ocorreu algum problema ao importar os contatos \n para mais detelhe mais entre em contato com o suporte tecnico';
+    req.flash('erro', erro);
+    res.redirect('/whatsapp/status_off', { erro: erro });
+  });
+});
 
 router.post('/whatsapp/send', adminAuth, async (req, res) => {
   var erro;
@@ -196,7 +261,6 @@ router.post('/whatsapp/send', adminAuth, async (req, res) => {
     res.redirect('/whatsapp/import');
   }
 });
-
 
 router.post('/whatsapp/import/arquivo', upload.single('arquivo'), async (req, res) => {
   var mensagem = req.body.mensagem
