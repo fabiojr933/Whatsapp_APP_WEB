@@ -9,7 +9,6 @@ var axios = require('axios');
 
 
 
-
 router.get('/whatsapp/session', adminAuth, (req, res) => {
   var cnpj = req.session.user.cnpj;
   database.select(['apitoken', 'servidor', 'session', 'webhook']).where({ 'cnpj': cnpj }).table('empresa').then(dados_empresa => {

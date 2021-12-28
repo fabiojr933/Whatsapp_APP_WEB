@@ -3,13 +3,14 @@ const express = require("express");
 const router = express.Router();
 const database = require('../database/database');
 
-router.get('/login', (req, res) => {
+exports.login = async (req, res) => {
     var erro = req.flash('erro');
     erro = (erro == undefined || erro.length == 0) ? undefined : erro;
     res.render('login/index', { erro: erro });
-});
+};
 
-router.post('/authrnticate', (req, res) => {
+
+exports.authenticate = async (req, res) => {
     var email = req.body.email;
     var senha = req.body.senha;
     var erro;
@@ -37,12 +38,11 @@ router.post('/authrnticate', (req, res) => {
         req.flash('erro', erro);
         res.redirect('/login');
     });
-});
+};
 
-router.get('/logoof', (req, res) => {
+exports.logoof = async (req, res) => {
     console.log('aqi');
     req.session.user = undefined;
     res.redirect('/login');
-});
+};
 
-module.exports = router;

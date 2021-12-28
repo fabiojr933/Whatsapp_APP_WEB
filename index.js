@@ -6,10 +6,7 @@ const bodyParser = require('body-parser');
 const session = require('express-session');
 const adminAuth = require('./src/middlewares/adminAuth');
 
-const WhatsappController = require('./src/controllers/whatsappController');
-const EmpresaController = require('./src/controllers/CompanyController');
-const LoginController = require('./src/controllers/LoginController');
-
+const Route = require('./src/routes/routes');
 
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
@@ -30,9 +27,8 @@ app.get('/', adminAuth, (req, res) => {
     
     res.render('index', {sucesso: sucesso});
 });
-app.use('/', WhatsappController);
-app.use('/', EmpresaController);
-app.use('/', LoginController);
+app.use('/', Route);
+
 
 app.listen(3000, (req, res) => {
     console.log('Servidor ativo');
