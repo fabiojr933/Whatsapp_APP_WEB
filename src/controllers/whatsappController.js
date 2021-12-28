@@ -52,8 +52,8 @@ router.get('/whatsapp/status', (req, res) => {
           'sessionkey': session_empresa
         },
         data: data
-      }
-      axios(config).then(response => {
+      }      
+      axios(config).then(response => {       
         if (response.data.status == 'inChat') {
           var status = 'On-line';
           res.render('whatsapp/status', { erro: erro, sucesso: sucesso, nome_empresa: nome_empresa, cnpj_empresa: cnpj_empresa, status: status });
@@ -71,20 +71,11 @@ router.get('/whatsapp/status', (req, res) => {
   });
 });
 
-router.get('/whatsapp/session/logout', (req, res) => { // ESTA COM BUG NÃO ESTA FIBALIZANDO A SESSÃO 
-  /*
-  ESTA COM BUG NÃO ESTA FIBALIZANDO A SESSÃO 
-
- ATENÇÃO
-
-  console.log('chegou aqui............');
+router.get('/whatsapp/session/logout', (req, res) => { 
   var cnpj = req.session.user.cnpj;
-  database.select('*').where({ 'cnpj': cnpj }).table('empresa').then(dados => {
-    var nome_empresa = dados[0].nome_empresa;
-    var cnpj_empresa = dados[0].cnpj;
+  database.select('*').where({ 'cnpj': cnpj }).table('empresa').then(dados => {   
     var session_empresa = dados[0].session;
-    var servidor_empresa = dados[0].servidor;
- 
+    var servidor_empresa = dados[0].servidor; 
     if (session_empresa == undefined || session_empresa == '') {
       erro = 'Não foi poossivel encontrar a sessão da empresa \n chame o suporte tecnico para mais detalhe';
       req.flash('erro', erro);
@@ -96,7 +87,7 @@ router.get('/whatsapp/session/logout', (req, res) => { // ESTA COM BUG NÃO ESTA
       console.log(data);
       var config = {
         method: 'POST',
-        url: servidor_empresa + '/close',
+        url: servidor_empresa + '/logout',
         headers:{
           'sessionkey': session_empresa         
         },
@@ -105,23 +96,21 @@ router.get('/whatsapp/session/logout', (req, res) => { // ESTA COM BUG NÃO ESTA
       console.log(config);
       axios(config).then(response => {       
         console.log(response)
-     //   sucesso = 'Sessão finalizado com sucesso';
-     //   req.flash('sucesso', sucesso);
-     //   var status = 'Off-line';
-     //   res.render('whatsapp/status_off', { erro: erro, sucesso: sucesso, nome_empresa: nome_empresa, cnpj_empresa: cnpj_empresa, status: status });
+        sucesso = 'Sessão finalizado com sucesso';
+        req.flash('sucesso', sucesso);     
+       res.redirect('/');
       }).catch(erro => {
         erro = 'Não foi poossivel encerrar a sessão da empresa \n chame o suporte tecnico para mais detalhe';
         req.flash('erro', erro); 
-        res.render('whatsapp/status', {erro: erro});
+        console.log(erro);
+        res.redirect('/');
       });
     }
   }).catch(erro => {
     erro = 'Não foi poossivel encontrar a sessão da empresa \n chame o suporte tecnico para mais detalhe';
     req.flash('erro', erro);
     res.redirect('/whatsapp/status_off', { erro: erro });
-  }); 
-  */
-
+  });
 });
 
 
