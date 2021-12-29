@@ -7,6 +7,7 @@ const session = require('express-session');
 const adminAuth = require('./src/middlewares/adminAuth');
 
 const Route = require('./src/routes/routes');
+const whatsappController = require('./src/controllers/whatsappController');
 
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
@@ -28,6 +29,7 @@ app.get('/', adminAuth, (req, res) => {
     res.render('index', {sucesso: sucesso});
 });
 app.use('/', Route);
+app.use('/', whatsappController);
 
 
 app.listen(3000, (req, res) => {

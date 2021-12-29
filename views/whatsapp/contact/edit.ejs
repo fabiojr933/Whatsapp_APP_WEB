@@ -1,0 +1,53 @@
+<%- include('../../partials/header.ejs') %>
+    </head>
+
+    <body>
+        <%- include('../../partials/navbar.ejs') %>
+            <%- include('../../partials/menu.ejs') %>
+
+
+                <main id="main" class="main">
+
+                    <div class="pagetitle">
+                        <h1>Editar Contato</h1>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title"></h5>
+                            <div class="d-flex justify-content-end">
+                                <a href="/whatsapp/contact/search" type="submit" class="btn btn-primary ">Voltar</a>
+                            </div><br>
+                            <form action="/whatsapp/contact/update" method="post">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <label class="form-label">Nome</label>
+                                        <input type="text" class="form-control" name="nome_contato"
+                                            placeholder="Nome da empresas" required value="<%= dados[0].nome %>">
+                                        <input type="hidden" name="id" required value="<%= dados[0].id %>">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">Telefone</label>
+                                        <input type="text" class="form-control" name="telefone" placeholder="telefone"
+                                            required value="<%= dados[0].telefone %>">
+                                    </div>
+                                </div><br>
+                                <div class="row" hidden>
+                                    <div class="col-6">
+                                        <label class="form-label">CNPJ</label>
+                                        <input type="number" class="form-control" name="empresa_cnpj"
+                                            placeholder="CNPJ da empresa" required value="<%= dados[0].empresa_cnpj %>">
+                                    </div>
+                                </div>
+                                <div class="text-left">
+                                    <button type="submit" class="btn btn-primary">Salvar</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                </main>
+                <%- include('../../partials/footer.ejs') %>
+    </body>
+
+    </html>

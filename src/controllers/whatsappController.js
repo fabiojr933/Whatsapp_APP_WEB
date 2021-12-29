@@ -27,7 +27,6 @@ router.get('/whatsapp/import', adminAuth, (req, res) => {
   sucesso = sucesso == undefined || sucesso.length == 0 || sucesso == '' ? undefined : sucesso;
   res.render('whatsapp/import', { erro: erro, sucesso: sucesso });
 });
-
 router.get('/whatsapp/status', (req, res) => {
   var erro = req.flash('erro');
   var sucesso = req.flash('sucesso');
@@ -72,7 +71,6 @@ router.get('/whatsapp/status', (req, res) => {
     res.render('whatsapp/status_off', { erro: erro, nome_empresa: nome_empresa, cnpj_empresa: cnpj_empresa, status: status });
   });
 });
-
 router.get('/whatsapp/session/logout', (req, res) => {
   var cnpj = req.session.user.cnpj;
   database.select('*').where({ 'cnpj': cnpj }).table('empresa').then(dados => {
@@ -114,7 +112,6 @@ router.get('/whatsapp/session/logout', (req, res) => {
     res.redirect('/whatsapp/status_off', { erro: erro });
   });
 });
-
 router.get('/whatsapp/contact/search', (req, res) => {
   var sucesso = req.flash('sucesso');
   sucesso = sucesso == undefined || sucesso.length == 0 || sucesso == '' ? undefined : sucesso;
@@ -153,13 +150,22 @@ router.get('/whatsapp/contact/import', (req, res) => {
         response.data.contacts.forEach(dados => {
           var nome = dados.name;
           var telefone = dados.phone.substr(2, 10);
-          database.insert({ 'nome': nome, 'telefone': telefone, 'empresa_cnpj': cnpj }).into('contato').then(res => {
-          }).catch(err => {
-            erro = 'Ops! ocorreu algum problema ao importar os contatos \n para mais detelhe mais entre em contato com o suporte tecnico';
-            req.flash('erro', erro);
-            res.redirect('/whatsapp/contact/search');
-          });
-        })
+          if (nome != '' || nome == undefined) {
+            database.count('telefone').where({ 'telefone': telefone }).table('contato').then(contato => {
+              //  console.log(contato[0].count);
+              if (contato[0].count == 0) {
+                console.log(contato[0].count);
+                database.insert({ 'nome': nome, 'telefone': telefone, 'empresa_cnpj': cnpj }).into('contato').then(res => {
+                }).catch(err => {
+                  erro = 'Ops! ocorreu algum problema ao importar os contatos \n para mais detelhe mais entre em contato com o suporte tecnico';
+                  req.flash('erro', erro);
+                  console.log(err);
+                  res.redirect('/whatsapp/contact/search');
+                });
+              }
+            });
+          }
+        });
         sucesso = 'Todos os contatos importados com sucesso';
         req.flash('sucesso', sucesso);
         res.redirect('/whatsapp/contact/search');
@@ -177,7 +183,6 @@ router.get('/whatsapp/contact/import', (req, res) => {
     res.redirect('/whatsapp/status_off', { erro: erro });
   });
 });
-
 router.post('/whatsapp/send', adminAuth, async (req, res) => {
   var erro;
   var sucesso;
@@ -260,7 +265,6 @@ router.post('/whatsapp/send', adminAuth, async (req, res) => {
     res.redirect('/whatsapp/import');
   }
 });
-
 router.post('/whatsapp/import/arquivo', upload.single('arquivo'), async (req, res) => {
   var mensagem = req.body.mensagem
   var erro;
@@ -302,5 +306,78 @@ router.post('/whatsapp/import/arquivo', upload.single('arquivo'), async (req, re
     res.redirect('/whatsapp/import');
   }
 });
+router.get('/whatsapp/contact/edit/:id', (req, res) => {
+  var id = parseInt(req.params.id);
+  if (id) {
+    database.select('*').table('contato').where({ 'id': id }).then(dados => {     
+      res.render('whatsapp/contact/edit', {dados: dados});
+    }).catch(erro => {
+      erro = 'Ops! ocorreu algum problema \n para mais detelhe mais entre em contato com o suporte tecnico';
+      req.flash('erro', erro);     
+      res.redirect('/whatsapp/contact/search');
+    });
+  } else {
+    erro = 'Ops! ocorreu algum problema, para mais detelhe mais entre em contato com o suporte tecnico';
+    req.flash('erro', erro);    
+    res.redirect('/whatsapp/contact/search');
+  }
+});
+router.post('/whatsapp/contact/update', (req, res) => {
+  var nome = req.body.nome_contato
+  var telefone = req.body.telefone;
+  var cnpj = req.body.empresa_cnpj;
+  var id = req.body.id;
 
+  if(!cnpj || !id){
+    erro = 'Ops! ocorreu algum problema, faltou passar o paramentro cnpj da empresa e id do contato \n para mais detelhe mais entre em contato com o suporte tecnico';
+    req.flash('erro', erro);    
+    res.redirect('/whatsapp/contact/search');
+  }else{
+    database.where({'empresa_cnpj': cnpj, 'id': id}).update({ 'nome': nome, 'telefone': telefone}).table('contato').then(sucesso => {      
+      sucesso = 'Contato atualizado com sucesso';
+      req.flash('sucesso', sucesso);    
+      res.redirect('/whatsapp/contact/search');
+    }).catch(erro => {
+      erro = 'Ops! ocorreu algum problema, para mais detelhe mais entre em contato com o suporte tecnico';
+      req.flash('erro', erro);    
+      res.redirect('/whatsapp/contact/search');
+    });
+  }  
+});
+router.post('/whatsapp/contact/delete', (req, res) => {
+  var id = req.body.id;
+  var empresa_cnpj = req.body.empresa_cnpj;
+  if(!id){
+    erro = 'Ops! ocorreu algum problema, faltou passar o paramentro id, para mais detelhe mais entre em contato com o suporte tecnico';
+    req.flash('erro', erro);    
+    res.redirect('/whatsapp/contact/search');
+  }else{
+    var a =database.where(
+      
+      {'id': id}).delete().table('contato').then(sucesso => {   
+      sucesso = 'Contato deletado com sucesso';
+      req.flash('sucesso', sucesso);    
+      res.redirect('/whatsapp/contact/search');
+    }).catch(err => {
+      erro = 'Ops! ocorreu algum problema ao deletar o contato, para mais detelhe mais entre em contato com o suporte tecnico';
+      req.flash('erro', err);    
+      res.redirect('/whatsapp/contact/search');
+    });
+  }
+});
+router.get('/whatsapp/send/contact', (req, res) => {
+  var sucesso;
+  var erro;
+  sucesso = (sucesso == undefined || sucesso == '' || sucesso.length == 0) ? undefined : sucesso;
+  erro = (erro == undefined || erro == '' || erro.length == 0) ? undefined : erro;
+  database.select('*').table('contato').then(dados => {
+    sucesso = 'Contatos importado com sucesso';
+    req.flash('sucesso', sucesso);    
+    res.render('whatsapp/contact/send', {erro: erro, sucesso: sucesso, dados: dados});
+  }).catch(erro => {
+    erro = 'Ops! ocorreu algum problema, para mais detelhe mais entre em contato com o suporte tecnico';
+    req.flash('erro', erro);    
+    res.redirect('/whatsapp/contact/send');
+  }); 
+});
 module.exports = router;

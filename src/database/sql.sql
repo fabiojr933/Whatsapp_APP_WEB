@@ -23,7 +23,14 @@ CREATE TABLE public.mensagem
   telefone character varying(20),
   mensagem text NOT NULL,
   empresa character varying(100) NOT NULL
-)
+);
+CREATE TABLE public.contato
+(
+  id serial,
+  nome character varying(100),
+  telefone character varying(100),
+  empresa_cnpj character varying(50)
+);
 
 
 /*  sql para relatorio

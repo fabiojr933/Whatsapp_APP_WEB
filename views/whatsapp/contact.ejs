@@ -14,7 +14,7 @@
                     <% if(sucesso) {%>
                         <div class="alert alert-primary alert-dismissible fade show" role="alert">
                             <%=sucesso%>
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" 
                                     aria-label="Close"></button>
                         </div>
                         <% } %>
@@ -28,13 +28,18 @@
                                                 <a href="/whatsapp/contact/import" class="btn btn-primary">Importar</a>
                                             </div>
                                         </div>
+                                        <button class="btn btn-primary" type="button" disabled id="carregar">
+                                            <span class="spinner-border spinner-border-sm" role="status"
+                                                aria-hidden="true"></span>
+                                            Aguarde Carregando......Estamos verificando seus contatos gravado no banco de dados, pode demorar alguns minutos......
+                                        </button>
                                     </div>
                                 </div>
-                                <table id="datatable" class="table datatable">
-                                    <thead>
+                                <table id="datatable" class="table datatable" style="display: none;">
+                                    <thead >
                                         <tr>
                                             <th scope="col">Id</th>
-                                            <th scope="col">Nome</th>                                          
+                                            <th scope="col">Nome</th>
                                             <th scope="col">Telefone</th>
                                             <th scope="col">Acão</th>
                                         </tr>
@@ -49,14 +54,15 @@
                                                 </th>
                                                 <td>
                                                     <%= element.nome %>
-                                                </td>                                              
+                                                </td>
                                                 <td>
                                                     <%= element.telefone %>
                                                 </td>
                                                 <td>
-                                                    <a title="Editar" href="/"><i class="fas fa-edit"></i></a>
-                                                    <form action="/" style="display: inline;" method="post">
-                                                        <input type="hidden" name="id" value="">
+                                                    <a title="Editar" href="/whatsapp/contact/edit/ <%= element.id %>"><i class="fas fa-edit"></i></a>
+                                                    <form action="/whatsapp/contact/delete" style="display: inline;" method="post" onsubmit="confirmDelecao(event, this)">
+                                                        <input type="hidden" name="id" value=" <%= element.id %>">
+                                                        <input type="hidden" name="empresa_cnpj" value=" <%= element.empresa_cnpj %>">
                                                         <button style="border: none;" title="Excluir"><i
                                                                 class="fas fa-trash-alt"></i></button>
                                                     </form>
@@ -69,6 +75,26 @@
 
                 </main>
                 <%- include('../partials/footer.ejs') %>
+                    <script>
+                        function confirmDelecao(event, form) {
+                            event.preventDefault();
+                            var decisao = confirm('Deseja realmente excluir ? ');
+                            if (decisao) {
+                                form.submit();
+                            }
+                        }
+                    </script>
+
+                    <script>                        
+                        $(document).ready(function () {                            
+                            var c = document.getElementById('carregar');
+                            setTimeout(
+                                    document.getElementById('datatable').style.display = 'block',
+                                    $(c).hide(),                                 
+                            ), 70000
+                        });
+
+                    </script>
                     <script>
                         function confirmDelecao(event, form) {
                             event.preventDefault();
