@@ -43,6 +43,6 @@ where A.NOME is not null and
       substring(A.FONE from 1 for 3) = '669' and
       char_length(A.FONE) = '10'
 
-
+ALTER TABLE contato ALTER COLUMN telefone TYPE numeric(10,0) USING telefone::numeric;
 
 */

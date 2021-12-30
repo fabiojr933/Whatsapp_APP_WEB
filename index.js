@@ -25,8 +25,10 @@ app.use(flash());
 app.get('/', adminAuth, (req, res) => {
     var sucesso = req.flash('sucesso');
     sucesso = (sucesso == undefined || sucesso.length == 0) ? undefined : sucesso; 
+    var erro = req.flash('erro');
+    erro = (erro == undefined || erro.length == 0) ? undefined : erro; 
     
-    res.render('index', {sucesso: sucesso});
+    res.render('index', {sucesso: sucesso, erro: erro });
 });
 app.use('/', Route);
 app.use('/', whatsappController);

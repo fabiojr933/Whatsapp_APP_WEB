@@ -54,6 +54,7 @@ exports.company_new2 = async (req, res) => {
     if (via_banco_dados == undefined) {
         via_banco_dados = 'nao';
     }
+    cnpj = parseInt(cnpj);
     var dados = [{
         nome_empresa: nome_empresa,
         email: email,
