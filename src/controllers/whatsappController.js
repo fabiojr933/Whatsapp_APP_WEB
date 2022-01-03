@@ -5,7 +5,9 @@ const upload = require('../middlewares/upload');
 const Read = require('../middlewares/Read');
 const Process = require('../middlewares/Process');
 const database = require('../database/database');
+var fs = require('fs');
 var axios = require('axios');
+const imageToBase64 = require('image-to-base64');
 
 
 
@@ -19,7 +21,6 @@ router.get('/whatsapp/session', adminAuth, (req, res) => {
     res.render('whatsapp/session', { apitoken_empresa: apitoken, server_empresa: server, session_empresa: session, webhook_empresa: webhook });
   });
 });
-
 router.get('/whatsapp/import', adminAuth, (req, res) => {
   var erro = req.flash('erro');
   var sucesso = req.flash('sucesso');
@@ -187,7 +188,8 @@ router.post('/whatsapp/send', adminAuth, async (req, res) => {
   var erro;
   var sucesso;
   var cod_mensagem = parseInt(req.body.codigo_mensagem);
-  var cpf_cnpj_empresa = req.body.cpf_cnpj_empresa;
+  var cpf_cnpj_empresa = req.session.user.cnpj;
+  var cpf_cnpj_empresa_ant = req.body.cpf_cnpj_empresa;
   if (cod_mensagem == '' || cod_mensagem == undefined) {
     erro = 'Não foi poossivel encontrar o codigo da mensagem, gerado pelo banco de dados \n chame o suporte tecnico para mais detalhe';
     req.flash('erro', erro);
@@ -292,6 +294,7 @@ router.post('/whatsapp/import/arquivo', upload.single('arquivo'), async (req, re
       }
       for (const [mensagem, cliente, telefone, empresa, codigo_cliente] of dadosProcessados) {
         database.insert({ codigo_mensagem: codigo_mensagem, codigo_cliente: codigo_cliente, cliente: cliente, mensagem: mensagem, telefone: telefone, empresa: empresa }).into('mensagem').then(sucesso => {
+          console.log(sucesso);
         }).catch(erro => {
           erro = 'Erro ao gravar as informações do arquivo .CSV, para o banco de dados \n entre em contato com o suporte para mais informação';
           req.flash('erro', erro);
@@ -384,7 +387,7 @@ router.post('/whatsapp/send/contact', (req, res) => {
   var erro;
   var sucesso;
   var contato = (req.body.contato);
-  var mensagem = req.body.mensagem; 
+  var mensagem = req.body.mensagem;
   JSON.stringify(contato);
   var resultado = [];
   contato.forEach(c => {
@@ -394,7 +397,7 @@ router.post('/whatsapp/send/contact', (req, res) => {
   var cnpj = req.session.user.cnpj;
 
 
-  database.select('*').where({ 'cnpj': `${cnpj}` }).table('empresa').then(dados_empresa => { 
+  database.select('*').where({ 'cnpj': `${cnpj}` }).table('empresa').then(dados_empresa => {
     resultado.forEach(dado => {
       var data = {
         'session': dados_empresa[0].session,
@@ -439,6 +442,151 @@ router.post('/whatsapp/send/contact', (req, res) => {
     erro = 'Ops! ocorreu algum problema, para mais detelhe mais entre em contato com o suporte tecnico';
     req.flash('erro', erro);
     res.redirect('/whatsapp/contact/send');
+  });
+});
+router.get('/whatsapp/import/archive', (req, res) => {
+  var erro = req.flash('erro');
+  var sucesso = req.flash('sucesso');
+  erro = erro == undefined || erro.length == 0 ? undefined : erro;
+  sucesso = sucesso == undefined || sucesso.length == 0 || sucesso == '' ? undefined : sucesso;
+  res.render('whatsapp/import_image', { erro: erro, sucesso: sucesso });
+});
+router.post('/whatsapp/import/arquivo_archive', upload.array('arquivo'), async (req, res) => {
+  var arquivos = req.files;
+  var erro;
+  var mensagem = req.body.mensagem;
+  var codigo_mensagem_ultimo;
+  arquivos.forEach(arq => {
+    if (arq.mimetype == 'text/csv' || arq.mimetype == 'application/vnd.ms-excel') {
+      var rows = [];
+      fs.readFile(arq.path, 'utf8', function (err, data) {
+        if (err) {
+          console.log(err);
+          return;
+        } else {
+          var a = data.split('\r\n');
+          a.forEach(row => {
+            var arr = row.split(';');
+            rows.push(arr);
+          });
+        }
+        var dados_header = rows[0];
+        var sms = 'MENSAGEM';
+        dados_header.unshift(sms);
+        rows.shift();
+        rows.pop();
+        //  cpf_cnpj_empresa = rows[0][4];
+        rows.forEach(element => {
+          element.unshift(mensagem);
+        });
+        var codigo_mensagem = 0;
+        database('mensagem').max('codigo_mensagem').then(total => {
+          if (total[0].max == '' || total[0].max == undefined || isNaN(total[0].max)) {
+            codigo_mensagem = 1;
+          } else {
+            codigo_mensagem = parseInt(total[0].max + 1);
+            codigo_mensagem_ultimo += codigo_mensagem;
+          }
+          for (const [mensagem, cliente, telefone, empresa, codigo_cliente] of rows) {
+            database.insert({ codigo_mensagem: codigo_mensagem, codigo_cliente: codigo_cliente, cliente: cliente, mensagem: mensagem, telefone: telefone, empresa: empresa }).into('mensagem').then(sucesso => {
+
+            }).catch(err => {
+              console.error(err);
+              erro = 'Erro ao gravar as informações do arquivo .CSV, para o banco de dados \n entre em contato com o suporte para mais informação';
+              req.flash('erro', erro);
+              res.redirect('/whatsapp/import/arquivo_archive');
+            });
+          }
+        });
+
+      });
+    }
+  });
+  var imagens = '';
+  arquivos.forEach(image => {
+    if (image.mimetype == 'image/png' || image.mimetype == 'image/jpg' || image.mimetype == 'image/jpeg') {
+      var image64 = image.path;
+      imagens = image64;
+    }
+  });
+  console.log(imagens);
+  setTimeout(function () {
+    if (imagens != undefined || imagens.length <= 0) {
+      database('mensagem').max('codigo_mensagem').then(maxino => {
+        var codigo_mensagem = maxino[0].max;
+        console.log('entrou aqui...');
+        database.where({ 'codigo_mensagem': maxino[0].max }).update({ 'imagem': imagens }).table('mensagem').then(dado => {
+        }).catch(err => {
+          erro = 'Erro ao gravar imagem no banco de dados  \n entre em contato com o suporte para mais informação';
+          req.flash('erro', erro);
+          res.redirect('/whatsapp/import/arquivo_archive');
+        });
+        database.select('*').table('mensagem').where({ 'codigo_mensagem': codigo_mensagem }).then(dados => {
+          console.log('image gravado com sucesso');
+          res.render('whatsapp/send_archive', { dados: dados, codigo_mensagem: codigo_mensagem });
+        });
+
+      });
+    }
+  }, 3000);
+});
+router.post('/whatsapp/send_archive', (req, res) => {
+  var id_mensagem = req.body.codigo_mensagem;
+  var empresa = req.session.user.cnpj;
+  database.select(['nome_empresa', 'servidor', 'session']).where({ 'cnpj': empresa }).table('empresa').then(dados_empresa => {
+    console.log(dados_empresa[0].session);
+    /**
+     *  nome_empresa: 'fox sistemas',
+        servidor: 'http://192.168.1.6:3333',
+        session: 'fabio'
+     */
+    database.select(['cliente', 'telefone', 'mensagem', 'imagem']).where({ 'codigo_mensagem': id_mensagem }).table('mensagem').then(dados_mensagem => {
+      console.log(dados_mensagem[0].imagem);
+      var imagem64 = [];
+      for (const item of dados_mensagem.values()) {
+        var image = 'http://192.168.1.5/' + item.imagem;
+       
+          var data = {
+            'session': dados_empresa[0].session,
+            'number': '55' + item.telefone,
+            'caption': item.cliente + ' ' + item.mensagem + ' ' + dados_empresa[0].nome_empresa,
+            'path': image
+          }
+  
+          console.log(data);
+  
+  
+          try {
+            var config = {
+              method: 'POST',
+              url: dados_empresa[0].servidor + '/sendImage',
+              headers: {
+                'sessionkey': dados_empresa[0].session
+              },
+              data: data
+            };
+            axios(config).then(response => {
+              if (response.status != 200) {
+                erro = 'Não foi possivel enviar as mensagem, servidor não esta respondendo \n chame o suporte tecnico para mais detalhe';
+                req.flash('erro', erro);
+                res.redirect('/whatsapp/import/archive');
+              } else {
+                sucesso = 'Mensagem enviada com sucesso';
+                req.flash('sucesso', sucesso);
+                res.redirect('/whatsapp/import/archive');
+              }
+            });
+          } catch (error) {
+            erro = 'Não foi possivel enviar as mensagem, servidor não esta respondendo \n chame o suporte tecnico para mais detalhe';
+            req.flash('erro', erro);
+            res.redirect('/whatsapp/import/archive');
+          }
+        
+              
+    
+      }
+      console.log(imagem64[0]);
+    });
   });
 });
 module.exports = router;

@@ -45,4 +45,38 @@ where A.NOME is not null and
 
 ALTER TABLE contato ALTER COLUMN telefone TYPE numeric(10,0) USING telefone::numeric;
 
+
+
+
+
+CREATE TABLE public.mensagem
+(
+  id integer NOT NULL DEFAULT nextval('mensagem_id_seq'::regclass),
+  codigo_mensagem integer,
+  codigo_cliente character varying(25),
+  cliente character varying(95),
+  telefone character varying(20),
+  mensagem text NOT NULL,
+  empresa character varying(100) NOT NULL,
+  usuario character varying(50),
+  data date,
+  CONSTRAINT mensagem_codigo_mensagem_key UNIQUE (codigo_mensagem)
+)
+CREATE TABLE public.image
+(
+  id integer NOT NULL DEFAULT nextval('image_id_seq'::regclass),
+  id_codigo_mensagem integer,
+  imagem text,
+  CONSTRAINT image_pkey PRIMARY KEY (id),
+  CONSTRAINT image_id_codigo_mensagem_fkey FOREIGN KEY (id_codigo_mensagem)
+      REFERENCES public.mensagem (codigo_mensagem) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION
+)
+
+ imageToBase64(image).then((image64) =>{
+          image64 = JSON.stringify(image64);
+        }).catch((erro) => {
+          console.log(erro);
+        })  
+
 */

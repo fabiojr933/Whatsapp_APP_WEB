@@ -1,4 +1,4 @@
-class Processor {
+class  Processor {
     static Process(data){
         var a = data.split('\r\n');
         var rows = [];
