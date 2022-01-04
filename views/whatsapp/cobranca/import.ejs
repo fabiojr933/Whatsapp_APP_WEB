@@ -1,0 +1,72 @@
+<%- include('../../partials/header.ejs') %>
+</head>
+  <body>
+    <%- include('../../partials/navbar.ejs') %>
+      <%- include('../../partials/menu.ejs') %>
+
+
+        <main id="main" class="main">
+
+          <div class="pagetitle">
+                
+          </div>           
+          <section class="section">
+            <div class="row">
+              <div class="col-lg-12">               
+
+                      <% if(sucesso) {%>
+                          <div class="alert alert-primary alert-dismissible fade show"
+                              role="alert">
+                              <%=sucesso%>
+                                  <button type="button" class="btn-close"
+                                      data-bs-dismiss="alert" aria-label="Close"></button>
+                          </div>
+                          <% } %>
+                          <% if(erro) {%>
+                            <div class="alert alert-primary alert-dismissible fade show"
+                                role="alert">
+                                <%=erro%>
+                                    <button type="button" class="btn-close"
+                                        data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                            <% } %>
+
+
+                <div class="card">
+                  <div class="card-body">
+                    <h5 class="card-title">O arquivo tem que esta no arquivo formato .CSV</h5>
+                  </div>
+                </div>
+              </div>
+              <div class="col-lg-12">
+
+                <div class="card">
+                  <div class="card-body">
+                  <form action="/whatsapp/charge/import" method="post"  enctype="multipart/form-data">
+                    <div class="row mb-3">
+                        <label for="inputNumber" class="col-sm-2 col-form-label">Nome do arquivo</label>
+                        <div class="col-sm-10">
+                          <input class="form-control" type="file" id="arquivo" name="arquivo" required>
+                        </div>                      
+                      </div>
+                      <div class="col-sm-12">
+                        <textarea disabled class="form-control" style="height: 100px" id="mensagem" name="mensagem" placeholder="PREZADO SR.(A) <CLIENTE>. NOSSO REGISTRO CONSTA O SEGUINTE VALOR EM ABERTO R$<TOTAL>. SOLICITAMOS QUE ENTRE EM CONTATO CONOSCO <EMPRESAFONE> <EMPRESA>.
+                        " ></textarea>
+                      </div><br>
+                      <button type="submit" class="btn btn-primary">Enviar</button>
+                  </form>
+                  </div>
+                </div>
+
+                
+              </div>
+            </div>
+          </section>
+
+        </main>
+        <%- include('../../partials/footer.ejs') %>        
+        
+
+  </body>
+ 
+  </html>

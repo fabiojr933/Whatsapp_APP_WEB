@@ -545,48 +545,95 @@ router.post('/whatsapp/send_archive', (req, res) => {
       var imagem64 = [];
       for (const item of dados_mensagem.values()) {
         var image = 'http://192.168.1.5/' + item.imagem;
-       
-          var data = {
-            'session': dados_empresa[0].session,
-            'number': '55' + item.telefone,
-            'caption': item.cliente + ' ' + item.mensagem + ' ' + dados_empresa[0].nome_empresa,
-            'path': image
-          }
-  
-          console.log(data);
-  
-  
-          try {
-            var config = {
-              method: 'POST',
-              url: dados_empresa[0].servidor + '/sendImage',
-              headers: {
-                'sessionkey': dados_empresa[0].session
-              },
-              data: data
-            };
-            axios(config).then(response => {
-              if (response.status != 200) {
-                erro = 'Não foi possivel enviar as mensagem, servidor não esta respondendo \n chame o suporte tecnico para mais detalhe';
-                req.flash('erro', erro);
-                res.redirect('/whatsapp/import/archive');
-              } else {
-                sucesso = 'Mensagem enviada com sucesso';
-                req.flash('sucesso', sucesso);
-                res.redirect('/whatsapp/import/archive');
-              }
-            });
-          } catch (error) {
-            erro = 'Não foi possivel enviar as mensagem, servidor não esta respondendo \n chame o suporte tecnico para mais detalhe';
-            req.flash('erro', erro);
-            res.redirect('/whatsapp/import/archive');
-          }
-        
-              
-    
+
+        var data = {
+          'session': dados_empresa[0].session,
+          'number': '55' + item.telefone,
+          'caption': item.cliente + ' ' + item.mensagem + ' ' + dados_empresa[0].nome_empresa,
+          'path': image
+        }
+
+        console.log(data);
+
+
+        try {
+          var config = {
+            method: 'POST',
+            url: dados_empresa[0].servidor + '/sendImage',
+            headers: {
+              'sessionkey': dados_empresa[0].session
+            },
+            data: data
+          };
+          axios(config).then(response => {
+            if (response.status != 200) {
+              erro = 'Não foi possivel enviar as mensagem, servidor não esta respondendo \n chame o suporte tecnico para mais detalhe';
+              req.flash('erro', erro);
+              res.redirect('/whatsapp/import/archive');
+            } else {
+              sucesso = 'Mensagem enviada com sucesso';
+              req.flash('sucesso', sucesso);
+              res.redirect('/whatsapp/import/archive');
+            }
+          });
+        } catch (error) {
+          erro = 'Não foi possivel enviar as mensagem, servidor não esta respondendo \n chame o suporte tecnico para mais detalhe';
+          req.flash('erro', erro);
+          res.redirect('/whatsapp/import/archive');
+        }
+
+
+
       }
       console.log(imagem64[0]);
     });
   });
+});
+router.get('/whatsapp/import/charge', (req, res) => {
+  var erro = req.flash('erro');
+  var sucesso = req.flash('sucesso');
+  erro = erro == undefined || erro.length == 0 ? undefined : erro;
+  sucesso = sucesso == undefined || sucesso.length == 0 ? undefined : sucesso;
+  res.render('whatsapp/cobranca/import', { erro: erro, sucesso: sucesso });
+});
+router.post('/whatsapp/charge/import', upload.single('arquivo'), (req, res) => {
+  var arquivos = req.file;
+  var erro;
+  var mensagem = req.body.mensagem;
+  var codigo_mensagem_ultimo;
+  console.log('aqui');
+  console.log(arquivos);
+  if (arquivos.mimetype == 'text/csv' || arquivos.mimetype == 'application/vnd.ms-excel') {
+    var rows = [];
+    fs.readFile(arquivos.path, 'utf8', function (err, data) {
+      if (err) {
+        console.log(err);
+        return;
+      } else {
+        var a = data.split('\r\n');
+        a.shift();
+        a.pop();
+        a.forEach(row => {
+          var arr = row.split(';');
+          rows.push(arr);
+        });
+      }
+
+      rows.forEach(dados => {
+        database.insert({ codigo_empresa: dados[0], cliente: dados[1], valor_pendente: dados[2], nome_cliente: dados[3], telefone: dados[4], empresa: dados[5] }).into('cobranca').then(sucesso => {
+
+        }).catch(err => {
+          console.error(err);
+          erro = 'Erro ao gravar as informações do arquivo .CSV, para o banco de dados \n entre em contato com o suporte para mais informação';
+          req.flash('erro', erro);
+          res.redirect('/whatsapp/import/charge');
+        });
+      });
+    });
+  }
+  sucesso = 'Salvo com sucesso';
+  req.flash('sucesso', sucesso);
+  res.redirect('/whatsapp/import/charge');
+
 });
 module.exports = router;
