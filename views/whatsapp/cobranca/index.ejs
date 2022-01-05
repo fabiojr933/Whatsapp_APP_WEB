@@ -1,0 +1,35 @@
+<%- include('../../partials/header.ejs') %>
+</head>
+  <body>
+    <%- include('../../partials/navbar.ejs') %>
+      <%- include('../../partials/menu.ejs') %>
+
+
+        <main id="main" class="main">        
+          <section class="section">
+            <form action="/whatsapp/send/charge" method="post"> 
+              <input type="hidden" name="codigo_cobranca" value="<%= codigo_cobranca %>">
+            <div class="row">                      
+                 <button type="submit" class="btn btn-primary">Enviar Mensagem</button><br>
+                 <h5 class="card-title" style="text-align:center">Dados da mensagem</h5>
+                 <br>  <% dados.forEach(cobranca => { %>                   
+                    <div class="col-sm-12">
+                        <div class="card">
+                          <div class="card-body">                          
+                            <p class="card-text">PREZADO SR.(A) <%= cobranca.nome_cliente %> NOSSO REGISTRO CONSTA O SEGUINTE VALOR EM ABERTO R$ <%= cobranca.valor_pendente %> SOLICITAMOS QUE ENTRE EM CONTATO CONOSCO <%= cobranca.empresa %> </p> 
+                          </div>
+                        </div>
+                      </div>
+                    </div>         
+                </div>    
+              <% }); %>
+            </div>
+          </form>
+          </section>
+
+
+        </main>
+        <%- include('../../partials/footer.ejs') %>  
+         </body>
+
+  </html>

@@ -81,7 +81,8 @@ CREATE TABLE public.cobranca
   valor_pendente character varying(15),
   nome_cliente character varying(100),
   telefone character varying(15),
-  empresa character varying(100)
+  empresa character varying(100),
+  codigo_cobranca integer
 )
 
 
