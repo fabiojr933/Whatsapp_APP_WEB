@@ -15,7 +15,8 @@ exports.authenticate = async (req, res) => {
     var senha = req.body.senha;
     var erro;
     var sucesso;   
-    database.where({ email: email, senha: senha }).table('empresa').then(dados => {      
+    database.where({ email: email, senha: senha }).table('empresa').then(dados => {   
+        console.log(email, senha);   
         if (dados[0].email == email && dados[0].senha == senha) {
             sucesso = 'Bem vindo(a) ' + dados[0].nome_empresa;
             req.session.user = {
@@ -25,6 +26,9 @@ exports.authenticate = async (req, res) => {
                 token: dados[0].token,
                 cnpj: dados[0].cnpj,
                 apitoken: dados[0].apitoken,
+                servidor: dados[0].servidor,
+                ip: dados[0].ip
+                
             };           
             req.flash('sucesso', sucesso);
             res.redirect('/');

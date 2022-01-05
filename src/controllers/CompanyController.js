@@ -39,7 +39,7 @@ exports.company_update = async (req, res) => {
 };
 
 exports.company_new2 = async (req, res) => {
-    var { nome_empresa, email, senha, cnpj, servidor, apitoken, session, webhook, via_importacao, via_banco_dados } = req.body;
+    var { nome_empresa, email, senha, cnpj, servidor, apitoken, session, webhook, via_importacao, via_banco_dados, ip } = req.body;
     var erro = 'Ops aconteceu algum erro, ao salvar os dados, chama o suporte tecnico';
     var suscesso = 'Dados salvo com sucesso';
     if (via_importacao == 'on') {
@@ -65,7 +65,8 @@ exports.company_new2 = async (req, res) => {
         session: session,
         webhook: webhook,
         via_importacao: via_importacao,
-        via_banco_dados: via_banco_dados
+        via_banco_dados: via_banco_dados,
+        ip: ip
     }]; 
     try {
         companyModel.create(dados);
@@ -96,7 +97,7 @@ exports.company_delete_id = async (req, res) => {
 exports.company_update2 = async (req, res) => {
     var erro = 'Erro ao atualizar empresa, chame o suporte tecnico';
     var sucesso = 'Empresa atualizado com sucesso';
-    var { id, nome_empresa, email, senha, cnpj, servidor, apitoken, session, webhook, via_importacao, via_banco_dados } = req.body;   
+    var { id, nome_empresa, email, senha, cnpj, servidor, apitoken, session, webhook, via_importacao, via_banco_dados, ip } = req.body;   
 
     if (via_importacao == 'on') {
         via_importacao = 'sim';
@@ -121,7 +122,8 @@ exports.company_update2 = async (req, res) => {
         session: session,
         webhook: webhook,
         via_importacao: via_importacao,
-        via_banco_dados: via_banco_dados
+        via_banco_dados: via_banco_dados,
+        ip: ip
     };  
     try {
         companyModel.update(dados, id);

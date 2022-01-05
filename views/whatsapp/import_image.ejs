@@ -46,16 +46,17 @@
                     <div class="row mb-3">
                         <label for="inputNumber" class="col-sm-2 col-form-label">Nome do arquivo</label>
                         <div class="col-sm-10">
-                          <input class="form-control" type="file" id="arquivo" name="arquivo" required>
+                          <input class="form-control" type="file" id="arquivo" name="arquivo"  required>
                         </div>                      
                       </div><hr>
                       <div class="row mb-3">
-                        <label for="inputNumber" class="col-sm-2 col-form-label">Selecione a 1 imagem</label>
-                        <div class="col-sm-10">
-                          <input class="form-control" type="file" id="arquivo" name="arquivo" required>
+                        <label for="inputNumber" class="col-sm-2 col-form-label">Selecione as imagens</label>
+                        <div class="col-sm-10">                         
+                          <input class="form-control" type="file" id="arquivo", name="arquivo" multiple />                                                
                         </div>                      
-                      </div>                     
+                      </div>     
                       
+ 
                       <div class="col-sm-12">
                         <textarea class="form-control" style="height: 100px" id="mensagem" name="mensagem" placeholder="Digite sua mensagem exemplo {nome do cliente} + mensagem + {nome da empresa}" required></textarea>
                       </div><br>
@@ -81,6 +82,7 @@
            
             });
         </script>
+        
 
   </body>
  

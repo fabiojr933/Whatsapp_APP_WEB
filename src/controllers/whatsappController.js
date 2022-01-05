@@ -8,6 +8,8 @@ const database = require('../database/database');
 var fs = require('fs');
 var axios = require('axios');
 const imageToBase64 = require('image-to-base64');
+const { parse } = require('path');
+const { json } = require('body-parser');
 
 
 
@@ -240,6 +242,7 @@ router.post('/whatsapp/send', adminAuth, async (req, res) => {
               },
               data: data
             };
+           
             axios(config).then(response => {
               if (response.data.result != 200) {
                 erro = 'Não foi possivel enviar as mensagem, servidor não esta respondendo \n chame o suporte tecnico para mais detalhe';
@@ -456,6 +459,10 @@ router.post('/whatsapp/import/arquivo_archive', upload.array('arquivo'), async (
   var erro;
   var mensagem = req.body.mensagem;
   var codigo_mensagem_ultimo;
+
+  console.log(arquivos);
+ 
+  
   arquivos.forEach(arq => {
     if (arq.mimetype == 'text/csv' || arq.mimetype == 'application/vnd.ms-excel') {
       var rows = [];
@@ -502,20 +509,47 @@ router.post('/whatsapp/import/arquivo_archive', upload.array('arquivo'), async (
       });
     }
   });
-  var imagens = '';
+
+    /*
+  var imagens_caminho = [];
+  var imagens_nome = [];
+  var empresa = req.session.user.cnpj;
+  database.select(['nome_empresa', 'servidor', 'session']).where({ 'cnpj': empresa }).table('empresa').then(empresa => {
+    console.log(empresa[0].servidor)
+    arquivos.forEach(image => {
+      if (image.mimetype == 'image/png' || image.mimetype == 'image/jpg' || image.mimetype == 'image/jpeg') {
+        var image_caminho = image.path;
+        var image_nome = image.filename;
+        imagens_nome.push(imagens_nome);
+        var servidor_caminho_image = empresa[0].servidor + '/upload/' + image_nome;
+        imagens_caminho.push(servidor_caminho_image);
+        
+      }
+    });
+  })
+   */
+  var imagens_caminho = [];
+  var imagens_nome = [];
+ 
   arquivos.forEach(image => {
     if (image.mimetype == 'image/png' || image.mimetype == 'image/jpg' || image.mimetype == 'image/jpeg') {
-      var image64 = image.path;
-      imagens = image64;
+      var image_caminho = image.path;
+      var image_nome = image.filename;
+      var servidor = req.session.user.ip;
+      var caminho = image_caminho = (servidor + '/upload/' + image_nome);
+      imagens_caminho.push(caminho);      
+      imagens_nome.push(image_nome);
     }
   });
-  console.log(imagens);
+ 
+
+
   setTimeout(function () {
-    if (imagens != undefined || imagens.length <= 0) {
+    if (imagens_nome != undefined || imagens_nome.length <= 0 || imagens_caminho != undefined || imagens_caminho.length <= 0) {
       database('mensagem').max('codigo_mensagem').then(maxino => {
-        var codigo_mensagem = maxino[0].max;
+        var codigo_mensagem = parseInt(maxino[0].max);
         console.log('entrou aqui...');
-        database.where({ 'codigo_mensagem': maxino[0].max }).update({ 'imagem': imagens }).table('mensagem').then(dado => {
+        database.where({ 'codigo_mensagem': codigo_mensagem }).update({ 'imagens_caminho': imagens_caminho.join(','), 'imagens_nome':imagens_nome }).table('mensagem').then(dado => {
         }).catch(err => {
           erro = 'Erro ao gravar imagem no banco de dados  \n entre em contato com o suporte para mais informação';
           req.flash('erro', erro);
@@ -528,7 +562,7 @@ router.post('/whatsapp/import/arquivo_archive', upload.array('arquivo'), async (
 
       });
     }
-  }, 3000);
+  }, 3000);  
 });
 router.post('/whatsapp/send_archive', (req, res) => {
   var id_mensagem = req.body.codigo_mensagem;
@@ -540,22 +574,27 @@ router.post('/whatsapp/send_archive', (req, res) => {
         servidor: 'http://192.168.1.6:3333',
         session: 'fabio'
      */
-    database.select(['cliente', 'telefone', 'mensagem', 'imagem']).where({ 'codigo_mensagem': id_mensagem }).table('mensagem').then(dados_mensagem => {
-      console.log(dados_mensagem[0].imagem);
-      var imagem64 = [];
+    database.select(['cliente', 'telefone', 'mensagem', 'imagens_caminho']).where({ 'codigo_mensagem': id_mensagem }).table('mensagem').then(dados_mensagem => {
+   //  console.log(dados_mensagem);
+    //  console.log(dados_mensagem[0].imagens_nome)
+     
+   
       for (const item of dados_mensagem.values()) {
-        var image = 'http://192.168.1.5/' + item.imagem;
-
+            var servidor_image = [];
+            var img = item.imagens_caminho.split(',');
+            img.forEach(dados => {
+              servidor_image.push(dados);
+            });
+           
         var data = {
           'session': dados_empresa[0].session,
           'number': '55' + item.telefone,
-          'caption': item.cliente + ' ' + item.mensagem + ' ' + dados_empresa[0].nome_empresa,
-          'path': image
+          'caption': item.cliente + ' ' + item.mensagem + ' ' + dados_empresa[0].nome_empresa,         
+          'path': servidor_image
         }
-
-        console.log(data);
-
-
+        data = JSON.stringify(data);     
+     
+    
         try {
           var config = {
             method: 'POST',
@@ -565,29 +604,21 @@ router.post('/whatsapp/send_archive', (req, res) => {
             },
             data: data
           };
+          console.log(data);
           axios(config).then(response => {
-            if (response.status != 200) {
-              erro = 'Não foi possivel enviar as mensagem, servidor não esta respondendo \n chame o suporte tecnico para mais detalhe';
-              req.flash('erro', erro);
-              res.redirect('/whatsapp/import/archive');
-            } else {
-              sucesso = 'Mensagem enviada com sucesso';
-              req.flash('sucesso', sucesso);
-              res.redirect('/whatsapp/import/archive');
-            }
+            console.log(response);
           });
         } catch (error) {
           erro = 'Não foi possivel enviar as mensagem, servidor não esta respondendo \n chame o suporte tecnico para mais detalhe';
           req.flash('erro', erro);
           res.redirect('/whatsapp/import/archive');
-        }
-
-
-
-      }
-      console.log(imagem64[0]);
+        }  
+      }     
     });
   });
+  sucesso = 'Mensagem enviado com sucessp';
+  req.flash('sucesso', sucesso);
+  res.redirect('/whatsapp/import/archive');
 });
 router.get('/whatsapp/import/charge', (req, res) => {
   var erro = req.flash('erro');
