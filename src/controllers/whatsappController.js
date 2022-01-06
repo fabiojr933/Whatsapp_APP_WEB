@@ -7,9 +7,8 @@ const Process = require('../middlewares/Process');
 const database = require('../database/database');
 var fs = require('fs');
 var axios = require('axios');
-const imageToBase64 = require('image-to-base64');
-const { parse } = require('path');
-const { json } = require('body-parser');
+var https = require('follow-redirects').https;
+
 
 
 
@@ -242,7 +241,7 @@ router.post('/whatsapp/send', adminAuth, async (req, res) => {
               },
               data: data
             };
-           
+
             axios(config).then(response => {
               if (response.data.result != 200) {
                 erro = 'Não foi possivel enviar as mensagem, servidor não esta respondendo \n chame o suporte tecnico para mais detalhe';
@@ -461,8 +460,8 @@ router.post('/whatsapp/import/arquivo_archive', upload.array('arquivo'), async (
   var codigo_mensagem_ultimo;
 
   console.log(arquivos);
- 
-  
+
+
   arquivos.forEach(arq => {
     if (arq.mimetype == 'text/csv' || arq.mimetype == 'application/vnd.ms-excel') {
       var rows = [];
@@ -496,7 +495,20 @@ router.post('/whatsapp/import/arquivo_archive', upload.array('arquivo'), async (
           }
           for (const [mensagem, cliente, telefone, empresa, codigo_cliente] of rows) {
             database.insert({ codigo_mensagem: codigo_mensagem, codigo_cliente: codigo_cliente, cliente: cliente, mensagem: mensagem, telefone: telefone, empresa: empresa }).into('mensagem').then(sucesso => {
+              database('mensagem').max('codigo_mensagem').then(maxino => {
+                arquivos.forEach(image => {
+                  if (image.mimetype == 'image/png' || image.mimetype == 'image/jpg' || image.mimetype == 'image/jpeg') {
+                    var image_caminho = image.path;
+                    var image_nome = image.filename;
+                    var servidor = req.session.user.ip;
+                    var caminho = image_caminho = (servidor + '/upload/' + image_nome);
+                    //  caminho = caminho.join(',');
 
+                    database.insert({ 'caminho_imagem': caminho, 'codigo_mensagem': maxino[0].max, 'telefone': telefone }).table('imagem').then(dados => {
+                    });
+                  }
+                });
+              })
             }).catch(err => {
               console.error(err);
               erro = 'Erro ao gravar as informações do arquivo .CSV, para o banco de dados \n entre em contato com o suporte para mais informação';
@@ -505,97 +517,110 @@ router.post('/whatsapp/import/arquivo_archive', upload.array('arquivo'), async (
             });
           }
         });
-
       });
     }
   });
-
-    /*
-  var imagens_caminho = [];
-  var imagens_nome = [];
-  var empresa = req.session.user.cnpj;
-  database.select(['nome_empresa', 'servidor', 'session']).where({ 'cnpj': empresa }).table('empresa').then(empresa => {
-    console.log(empresa[0].servidor)
-    arquivos.forEach(image => {
-      if (image.mimetype == 'image/png' || image.mimetype == 'image/jpg' || image.mimetype == 'image/jpeg') {
-        var image_caminho = image.path;
-        var image_nome = image.filename;
-        imagens_nome.push(imagens_nome);
-        var servidor_caminho_image = empresa[0].servidor + '/upload/' + image_nome;
-        imagens_caminho.push(servidor_caminho_image);
-        
-      }
+  setTimeout(() => {
+    database('mensagem').max('codigo_mensagem').then(maxino => {
+      database.select('*').table('mensagem').where({ 'codigo_mensagem': maxino[0].max }).then(dados => {
+        console.log('image gravado com sucesso');
+        res.render('whatsapp/send_archive', { dados: dados, codigo_mensagem: maxino[0].max });
+      });
     });
-  })
-   */
-  var imagens_caminho = [];
-  var imagens_nome = [];
- 
-  arquivos.forEach(image => {
-    if (image.mimetype == 'image/png' || image.mimetype == 'image/jpg' || image.mimetype == 'image/jpeg') {
-      var image_caminho = image.path;
-      var image_nome = image.filename;
-      var servidor = req.session.user.ip;
-      var caminho = image_caminho = (servidor + '/upload/' + image_nome);
-      imagens_caminho.push(caminho);      
-      imagens_nome.push(image_nome);
-    }
-  });
- 
-
-
-  setTimeout(function () {
-    if (imagens_nome != undefined || imagens_nome.length <= 0 || imagens_caminho != undefined || imagens_caminho.length <= 0) {
-      database('mensagem').max('codigo_mensagem').then(maxino => {
-        var codigo_mensagem = parseInt(maxino[0].max);
-        console.log('entrou aqui...');
-        database.where({ 'codigo_mensagem': codigo_mensagem }).update({ 'imagens_caminho': imagens_caminho.join(','), 'imagens_nome':imagens_nome }).table('mensagem').then(dado => {
-        }).catch(err => {
-          erro = 'Erro ao gravar imagem no banco de dados  \n entre em contato com o suporte para mais informação';
-          req.flash('erro', erro);
-          res.redirect('/whatsapp/import/arquivo_archive');
-        });
-        database.select('*').table('mensagem').where({ 'codigo_mensagem': codigo_mensagem }).then(dados => {
-          console.log('image gravado com sucesso');
-          res.render('whatsapp/send_archive', { dados: dados, codigo_mensagem: codigo_mensagem });
-        });
-
-      });
-    }
-  }, 3000);  
+  }, 2000);
 });
-router.post('/whatsapp/send_archive', (req, res) => {
+router.post('/whatsapp/send_archive', async (req, res) => {
   var id_mensagem = req.body.codigo_mensagem;
   var empresa = req.session.user.cnpj;
   database.select(['nome_empresa', 'servidor', 'session']).where({ 'cnpj': empresa }).table('empresa').then(dados_empresa => {
     console.log(dados_empresa[0].session);
-    /**
-     *  nome_empresa: 'fox sistemas',
-        servidor: 'http://192.168.1.6:3333',
-        session: 'fabio'
-     */
-    database.select(['cliente', 'telefone', 'mensagem', 'imagens_caminho']).where({ 'codigo_mensagem': id_mensagem }).table('mensagem').then(dados_mensagem => {
-   //  console.log(dados_mensagem);
-    //  console.log(dados_mensagem[0].imagens_nome)
-     
-   
-      for (const item of dados_mensagem.values()) {
-            var servidor_image = [];
-            var img = item.imagens_caminho.split(',');
-            img.forEach(dados => {
-              servidor_image.push(dados);
-            });
-           
+    database.select('*').where({ 'codigo_mensagem': id_mensagem }).table('imagem').then(dados_mensagem => {
+
+    
+      dados_mensagem.forEach(item => {
         var data = {
           'session': dados_empresa[0].session,
           'number': '55' + item.telefone,
-          'caption': item.cliente + ' ' + item.mensagem + ' ' + dados_empresa[0].nome_empresa,         
-          'path': servidor_image
+          'caption': '',
+          'path': item.caminho_imagem
         }
-        data = JSON.stringify(data);     
-     
-    
+       
+        var options = {
+          'method': 'POST',
+          'hostname': dados_empresa[0].servidor,
+          'path': '/sendFile',
+          'headers': {
+            'sessionkey': dados_empresa[0].session
+          },
+          'maxRedirects': 20
+        };
+        
+        var req = https.request(options, function (res) {
+          var chunks = [];
+        
+          res.on("data", function (chunk) {
+            chunks.push(chunk);
+          });
+        
+          res.on("end", function (chunk) {
+            var body = Buffer.concat(chunks);
+            console.log(body.toString());
+          });
+        
+          res.on("error", function (error) {
+            console.error(error);
+          });
+        });
+        
+        var postData =  data;
+        
+        req.write(postData);
+        
+        req.end();
+        
+      })
+
+
+
+
+
+
+        
+        /*
+        var config = {
+          method: 'POST',
+          url: dados_empresa[0].servidor + '/sendFile',
+          headers: {
+            'sessionkey': dados_empresa[0].session
+          },
+          data: JSON.stringify(data)
+        };
+        axios(config).then(response => {
+          console.log(response);
+        });
+
+      }
+     */
+  /*
+      dados.forEach(element => {
+        console.log(element);      
         try {
+          var config = {
+            method: 'POST',
+            url: dados_empresa[0].servidor + '/sendFile',
+            headers: {
+              'sessionkey': dados_empresa[0].session
+            },
+            data: JSON.stringify(element)
+          };
+          axios(config).then(response => {
+          });
+        } catch (error) {
+          
+        }
+      })
+      */
+       /*
           var config = {
             method: 'POST',
             url: dados_empresa[0].servidor + '/sendImage',
@@ -606,14 +631,9 @@ router.post('/whatsapp/send_archive', (req, res) => {
           };
           console.log(data);
           axios(config).then(response => {
-            console.log(response);
           });
-        } catch (error) {
-          erro = 'Não foi possivel enviar as mensagem, servidor não esta respondendo \n chame o suporte tecnico para mais detalhe';
-          req.flash('erro', erro);
-          res.redirect('/whatsapp/import/archive');
-        }  
-      }     
+       
+      */
     });
   });
   sucesso = 'Mensagem enviado com sucessp';
@@ -631,14 +651,14 @@ router.post('/whatsapp/charge/import', upload.single('arquivo'), (req, res) => {
   var arquivos = req.file;
   var erro;
   var mensagem = req.body.mensagem;
-  var codigo_mensagem_ultimo; 
+  var codigo_mensagem_ultimo;
   if (arquivos.mimetype == 'text/csv' || arquivos.mimetype == 'application/vnd.ms-excel') {
     var rows = [];
     database('cobranca').max('codigo_cobranca').then(maxino => {
       var codigo_cobranca = parseInt(maxino[0].max);
       if (codigo_cobranca == undefined || codigo_cobranca == '' || isNaN(codigo_cobranca)) {
         codigo_cobranca = parseInt(1);
-      }else{
+      } else {
         codigo_cobranca = parseInt(codigo_cobranca + 1);
       }
       console.log(codigo_cobranca);
@@ -667,14 +687,14 @@ router.post('/whatsapp/charge/import', upload.single('arquivo'), (req, res) => {
           });
         });
       });
-      setTimeout(function() {
-        database.select('*').where({codigo_cobranca: codigo_cobranca}).table('cobranca').then( dados => {
-         res.render('whatsapp/cobranca/index', {dados: dados, codigo_cobranca: codigo_cobranca});
-        }); 
-      },1000); 
+      setTimeout(function () {
+        database.select('*').where({ codigo_cobranca: codigo_cobranca }).table('cobranca').then(dados => {
+          res.render('whatsapp/cobranca/index', { dados: dados, codigo_cobranca: codigo_cobranca });
+        });
+      }, 1000);
     });
 
-  }else{   
+  } else {
     erro = 'Arquivo com fornato invalido tem que esta no formato .CSV \n entre em contato com o suporte para mais informação';
     req.flash('erro', erro);
     res.redirect('/whatsapp/import/charge');
@@ -683,13 +703,13 @@ router.post('/whatsapp/charge/import', upload.single('arquivo'), (req, res) => {
 router.post('/whatsapp/send/charge', (req, res) => {
   var codigo_cobranca = req.body.codigo_cobranca;
   var empresa = req.session.user.cnpj;
-  database.select('*').where({codigo_cobranca: codigo_cobranca}).table('cobranca').then( dados => {
+  database.select('*').where({ codigo_cobranca: codigo_cobranca }).table('cobranca').then(dados => {
     database.select(['nome_empresa', 'servidor', 'session']).where({ 'cnpj': empresa }).table('empresa').then(dados_empresa => {
       for (const item of dados.values()) {
         var data = {
           'session': dados_empresa[0].session,
           'number': '55' + item.telefone,
-          'text': 'PREZADO SR.(A) ' + item.nome_cliente + ' NOSSO REGISTRO CONSTA O SEGUINTE VALOR EM ABERTO R$ ' +  item.valor_pendente + ' SOLICITAMOS QUE ENTRE EM CONTATO CONOSCO ' + dados_empresa[0].nome_empresa
+          'text': 'PREZADO SR.(A) ' + item.nome_cliente + ' NOSSO REGISTRO CONSTA O SEGUINTE VALOR EM ABERTO R$ ' + item.valor_pendente + ' SOLICITAMOS QUE ENTRE EM CONTATO CONOSCO ' + dados_empresa[0].nome_empresa
         };
         try {
           var config = {
@@ -699,14 +719,14 @@ router.post('/whatsapp/send/charge', (req, res) => {
               'sessionkey': dados_empresa[0].session
             },
             data: data
-          };          
+          };
         } catch (error) {
           erro = 'Não foi possivel enviar as mensagem, servidor não esta respondendo \n chame o suporte tecnico para mais detalhe';
           req.flash('erro', erro);
           res.redirect('/whatsapp/import/charge');
         }
         axios(config).then(response => {
-          if(response.data.result != 200){
+          if (response.data.result != 200) {
             erro = 'Não foi possivel enviar as mensagem, servidor não esta respondendo \n chame o suporte tecnico para mais detalhe';
             req.flash('erro', erro);
             res.redirect('/whatsapp/import/charge');
@@ -714,11 +734,11 @@ router.post('/whatsapp/send/charge', (req, res) => {
         });
       };
     }).catch(err => {
-    erro = 'Não foi possivel buscar dados da empresa \n entre em contato com o suporte para mais informação';
-    req.flash('erro', erro);
-    res.redirect('/whatsapp/import/charge');
-    });   
-   
+      erro = 'Não foi possivel buscar dados da empresa \n entre em contato com o suporte para mais informação';
+      req.flash('erro', erro);
+      res.redirect('/whatsapp/import/charge');
+    });
+
   }).catch(err => {
     erro = 'Erro ao enviar mensagem \n entre em contato com o suporte para mais informação';
     req.flash('erro', erro);

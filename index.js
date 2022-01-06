@@ -13,12 +13,12 @@ app.set('view engine', 'ejs');
 app.use(express.static('public'));
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({limit: '500mb', extended: true}));
+app.use(bodyParser.urlencoded({limit: '100mb', extended: true}));
 app.use(session({
     secret: 'keyboard cat',
     resave: false,
     saveUninitialized: true,
-    cookie: {maxAge: 300000000}
+    cookie: {maxAge: 3000000}
 }));
 app.use(flash());
 
