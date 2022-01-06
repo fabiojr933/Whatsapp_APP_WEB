@@ -85,7 +85,13 @@ CREATE TABLE public.cobranca
   codigo_cobranca integer
 )
 
-
+CREATE TABLE public.imagem
+(
+  id serial,
+  codigo_mensagem integer,
+  caminho_imagem text,
+  telefone character varying(50)
+)
 
 
 
