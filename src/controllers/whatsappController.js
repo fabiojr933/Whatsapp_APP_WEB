@@ -7,8 +7,9 @@ const Process = require('../middlewares/Process');
 const database = require('../database/database');
 var fs = require('fs');
 var axios = require('axios');
-var https = require('follow-redirects').https;
-
+const imageToBase64 = require('image-to-base64');
+const { parse } = require('path');
+const { json } = require('body-parser');
 
 
 
@@ -544,47 +545,15 @@ router.post('/whatsapp/send_archive', async (req, res) => {
           'caption': '',
           'path': item.caminho_imagem
         }
-       
-        var options = {
-          'method': 'POST',
-          'hostname': dados_empresa[0].servidor,
-          'path': '/sendFile',
-          'headers': {
-            'sessionkey': dados_empresa[0].session
-          },
-          'maxRedirects': 20
-        };
-        
-        var req = https.request(options, function (res) {
-          var chunks = [];
-        
-          res.on("data", function (chunk) {
-            chunks.push(chunk);
-          });
-        
-          res.on("end", function (chunk) {
-            var body = Buffer.concat(chunks);
-            console.log(body.toString());
-          });
-        
-          res.on("error", function (error) {
-            console.error(error);
-          });
-        });
-        
-        var postData =  data;
-        
-        req.write(postData);
-        
-        req.end();
+        data = JSON.stringify(data);
         
       })
 
+     
 
 
 
-
-
+      
         
         /*
         var config = {
