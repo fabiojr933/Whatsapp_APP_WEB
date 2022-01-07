@@ -531,54 +531,93 @@ router.post('/whatsapp/import/arquivo_archive', upload.array('arquivo'), async (
 router.post('/whatsapp/send_archive2', async (req, res) => {
   var id_mensagem = req.body.codigo_mensagem;
   var empresa = req.session.user.cnpj;
-  database.select(['nome_empresa', 'servidor', 'session']).where({ 'cnpj': empresa }).table('empresa').then(dados_empresa => {
+  database.select(['nome_empresa', 'servidor', 'session', 'senha']).where({ 'cnpj': empresa }).table('empresa').then(dados_empresa => {
     console.log(dados_empresa[0].session);
     database.select('*').where({ 'codigo_mensagem': id_mensagem }).table('imagem').then(dados_mensagem => {
          
 
-      dados_mensagem.forEach(dado => {
+      /**
+       * Aqui começa enviar a image
+       */
+      dados_mensagem.forEach(dado => {        
         var data = {
           "session": dados_empresa[0].session,
           "number": "55" + dado.telefone,
-          "caption": "teste",
-          "path": dado.caminho_imagem,
+          "caption": "",
+          "path": dado.caminho_imagem
         }
-        try {
-          data = JSON.stringify(data);
+        try {      
           var config = {
             method: "POST",
-            url: dados_empresa[0].servidor + "/sendFile",
+            url: dados_empresa[0].servidor + "/sendImage",
             headers: {
-              "sessionkey": dados_empresa[0].session
-            },
-            data: data
-          };
-          console.log(data);
-          console.log(config);
-          axios(config).then(response => {
-            console.log(response.data);
-            console.log('response');
+              "sessionkey": dados_empresa[0].session,
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer '+dados_empresa[0].senha,
+          },            
+            data: JSON.stringify(data)
+          };         
+          axios(config).then(response => {           
+            console.log('entrou no response');          
             if (response.data.result != 200) {
               erro = 'Não foi possivel enviar as mensagem, servidor não esta respondendo \n chame o suporte tecnico para mais detalhe';
               req.flash('erro', erro);
               res.redirect('/whatsapp/import');
             }
           }).catch(err => {
-          //  console.log(err);
+            console.log('Erro ----------------------------------------------   '+err);
           })
         } catch (error) {
           erro = 'Não foi possivel enviar as mensagem, servidor não esta respondendo \n chame o suporte tecnico para mais detalhe';
-          req.flash('erro', erro);
+          req.flash('erro', error);
           res.redirect('/');
-        }
+        }        
       });
+        /**
+       * Fim do envio da image
+       */
 
-   
+        //começa a envio da mensagem
+      database.select(['mensagem', 'telefone', 'cliente', 'empresa']).where({'codigo_mensagem': id_mensagem}).table('mensagem').then(mensagem => {
+        mensagem.forEach(dados_mensagem => {
+          console.log(dados_mensagem);
+          var data = {
+            "session": dados_empresa[0].session,
+            "number": "55" +dados_mensagem.telefone,
+            "text": dados_mensagem.cliente + ' ' + dados_mensagem.mensagem + ' ' + dados_mensagem.empresa
+          }
+          try {
+            var config = {
+              method: "POST",
+              url: dados_empresa[0].servidor + "/sendText",
+              headers: {
+                "sessionkey": dados_empresa[0].session,
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer '+dados_empresa[0].senha,
+            },            
+              data: JSON.stringify(data)
+            };
+            axios(config).then(response => { 
+              if (response.data.result != 200) {
+                erro = 'Não foi possivel enviar as mensagem, servidor não esta respondendo \n chame o suporte tecnico para mais detalhe';
+                req.flash('erro', erro);
+                res.redirect('/whatsapp/import/arquivo_archive');
+              }
+            }).catch(err => {
+              console.log('Erro ----------------------------------------------   '+err);
+            })
+          } catch (error) {
+            erro = 'Não foi possivel enviar as mensagem, servidor não esta respondendo \n chame o suporte tecnico para mais detalhe';
+            req.flash('erro', erro);
+            res.redirect('/whatsapp/import/arquivo_archive');
+          }
+        });
+      });   
     });
   });
-//  sucesso = 'Mensagem enviado com sucesso';
- // req.flash('sucesso', sucesso);
- // res.redirect('/whatsapp/import/archive');
+  sucesso = 'Mensagem enviado com sucesso';
+  req.flash('sucesso', sucesso);
+  res.redirect('/whatsapp/import/archive');
 });
 router.get('/whatsapp/import/charge', (req, res) => {
   var erro = req.flash('erro');
