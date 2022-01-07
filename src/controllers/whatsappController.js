@@ -5,11 +5,9 @@ const upload = require('../middlewares/upload');
 const Read = require('../middlewares/Read');
 const Process = require('../middlewares/Process');
 const database = require('../database/database');
-var fs = require('fs');
-var axios = require('axios');
-const imageToBase64 = require('image-to-base64');
-const { parse } = require('path');
-const { json } = require('body-parser');
+const fs = require('fs');
+const axios = require('axios');
+
 
 
 
@@ -530,84 +528,57 @@ router.post('/whatsapp/import/arquivo_archive', upload.array('arquivo'), async (
     });
   }, 2000);
 });
-router.post('/whatsapp/send_archive', async (req, res) => {
+router.post('/whatsapp/send_archive2', async (req, res) => {
   var id_mensagem = req.body.codigo_mensagem;
   var empresa = req.session.user.cnpj;
   database.select(['nome_empresa', 'servidor', 'session']).where({ 'cnpj': empresa }).table('empresa').then(dados_empresa => {
     console.log(dados_empresa[0].session);
     database.select('*').where({ 'codigo_mensagem': id_mensagem }).table('imagem').then(dados_mensagem => {
+         
 
-    
-      dados_mensagem.forEach(item => {
+      dados_mensagem.forEach(dado => {
         var data = {
-          'session': dados_empresa[0].session,
-          'number': '55' + item.telefone,
-          'caption': '',
-          'path': item.caminho_imagem
+          "session": dados_empresa[0].session,
+          "number": "55" + dado.telefone,
+          "caption": "teste",
+          "path": dado.caminho_imagem,
         }
-        data = JSON.stringify(data);
-        
-      })
-
-     
-
-
-
-      
-        
-        /*
-        var config = {
-          method: 'POST',
-          url: dados_empresa[0].servidor + '/sendFile',
-          headers: {
-            'sessionkey': dados_empresa[0].session
-          },
-          data: JSON.stringify(data)
-        };
-        axios(config).then(response => {
-          console.log(response);
-        });
-
-      }
-     */
-  /*
-      dados.forEach(element => {
-        console.log(element);      
         try {
+          data = JSON.stringify(data);
           var config = {
-            method: 'POST',
-            url: dados_empresa[0].servidor + '/sendFile',
+            method: "POST",
+            url: dados_empresa[0].servidor + "/sendFile",
             headers: {
-              'sessionkey': dados_empresa[0].session
-            },
-            data: JSON.stringify(element)
-          };
-          axios(config).then(response => {
-          });
-        } catch (error) {
-          
-        }
-      })
-      */
-       /*
-          var config = {
-            method: 'POST',
-            url: dados_empresa[0].servidor + '/sendImage',
-            headers: {
-              'sessionkey': dados_empresa[0].session
+              "sessionkey": dados_empresa[0].session
             },
             data: data
           };
           console.log(data);
+          console.log(config);
           axios(config).then(response => {
-          });
-       
-      */
+            console.log(response.data);
+            console.log('response');
+            if (response.data.result != 200) {
+              erro = 'Não foi possivel enviar as mensagem, servidor não esta respondendo \n chame o suporte tecnico para mais detalhe';
+              req.flash('erro', erro);
+              res.redirect('/whatsapp/import');
+            }
+          }).catch(err => {
+          //  console.log(err);
+          })
+        } catch (error) {
+          erro = 'Não foi possivel enviar as mensagem, servidor não esta respondendo \n chame o suporte tecnico para mais detalhe';
+          req.flash('erro', erro);
+          res.redirect('/');
+        }
+      });
+
+   
     });
   });
-  sucesso = 'Mensagem enviado com sucessp';
-  req.flash('sucesso', sucesso);
-  res.redirect('/whatsapp/import/archive');
+//  sucesso = 'Mensagem enviado com sucesso';
+ // req.flash('sucesso', sucesso);
+ // res.redirect('/whatsapp/import/archive');
 });
 router.get('/whatsapp/import/charge', (req, res) => {
   var erro = req.flash('erro');
