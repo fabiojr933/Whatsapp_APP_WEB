@@ -263,7 +263,7 @@ router.post('/whatsapp/send', adminAuth, async (req, res) => {
       req.flash('erro', erro);
       res.redirect('/whatsapp/import');
     });
-    sucesso = 'Mensagens enviado com sucesso';
+    sucesso = 'Mensagem esta sendo enviada para seu cliente, este processo pode demorar um pouco....';
     req.flash('sucesso', sucesso);
     res.redirect('/whatsapp/import');
   }
@@ -615,7 +615,7 @@ router.post('/whatsapp/send_archive2', async (req, res) => {
       });   
     });
   });
-  sucesso = 'Mensagem enviado com sucesso';
+  sucesso = 'Mensagem esta sendo enviada para seu cliente, este processo pode demorar um pouco....';
   req.flash('sucesso', sucesso);
   res.redirect('/whatsapp/import/archive');
 });
@@ -723,7 +723,7 @@ router.post('/whatsapp/send/charge', (req, res) => {
     req.flash('erro', erro);
     res.redirect('/whatsapp/import/charge');
   })
-  sucesso = 'Mensagem enviado com sucesso';
+  sucesso = 'Mensagem esta sendo enviada para seu cliente, este processo pode demorar um pouco....';
   req.flash('sucesso', sucesso);
   res.redirect('/whatsapp/import/charge');
 });

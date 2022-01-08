@@ -9,11 +9,25 @@
           <section class="section">
             <form action="/whatsapp/send_archive2" method="post">  
               <input type="hidden" name="codigo_mensagem" value="<%= codigo_mensagem %>">
-            <div class="row">                      
-                 <button type="submit" class="btn btn-primary">Enviar Mensagem</button><br>
+            <div class="row">    
+              <div style="text-align: center;">                  
+                 <button type="submit" class="btn btn-primary" onclick="carregamento_btn()">Enviar Mensagem</button>
+                </div>
+                <div></div><br>
+                <div style="text-align: center; display: none;" id="carregamento">
+                  <button class="btn btn-primary" type="button" disabled>
+                    <span class="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"></span>
+                    <span class="sr-only"> Enviando mensagem....Aguarde... Esse processo poderár demorar bastante!</span>
+                  </button>
+                  <button class="btn btn-primary" type="button" disabled>
+                    <span class="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"></span>
+                    Enviando mensagem....Aguarde... Esse processo poderár demorar bastante!
+                  </button>
+                </div><br>
+
                  <br>  <% dados.forEach(body => { %> 
-                
-              <div class="col-lg-6">
+                  <br><br>
+              <div class="col-lg-6" id="corpo">
                 <div class="card">
                   <div class="card-body">
                     <h5 class="card-title">Dados da mensagem</h5>
@@ -51,3 +65,12 @@
          </body>
 
   </html>
+
+  <script>
+    function carregamento_btn() {
+      setTimeout(
+        document.getElementById('carregamento').style.display = 'block',
+        document.getElementById('corpo').style.display = 'none',             
+      ),7000
+    }
+  </script>

@@ -40,8 +40,19 @@
               </div>
               <div class="col-lg-12">
 
-                <div class="card">
-                  <div class="card-body">
+                <div style="text-align: center; display: none;" id="carregamento">
+                  <button class="btn btn-primary" type="button" disabled>
+                    <span class="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"></span>
+                    <span class="sr-only"> Carregando....Aguarde...</span>
+                  </button>
+                  <button class="btn btn-primary" type="button" disabled>
+                    <span class="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"></span>
+                    Carregando....Aguarde
+                  </button>
+                </div><br>
+
+                <div class="card" id="corpo">
+                  <div class="card-body"><br><br>
                   <form action="/whatsapp/import/arquivo" method="post"  enctype="multipart/form-data">
                     <div class="row mb-3">
                         <label for="inputNumber" class="col-sm-2 col-form-label">Nome do arquivo</label>
@@ -52,7 +63,7 @@
                       <div class="col-sm-12">
                         <textarea class="form-control" style="height: 100px" id="mensagem" name="mensagem" placeholder="Digite sua mensagem exemplo {nome do cliente} + mensagem + {nome da empresa}" required></textarea>
                       </div><br>
-                      <button type="submit" class="btn btn-primary">Enviar</button>
+                      <button type="submit" class="btn btn-primary" onclick="carregamento_btn();">Enviar</button>
                   </form>
                   </div>
                 </div>
@@ -73,6 +84,14 @@
              $('#formato').val(mensagem_formatada);
            
             });
+        </script>
+        <script>
+          function carregamento_btn(){
+            setTimeout(
+              document.getElementById('carregamento').style.display = 'block',
+              document.getElementById('corpo').style.display = 'none',
+            ),7000
+          }
         </script>
 
   </body>

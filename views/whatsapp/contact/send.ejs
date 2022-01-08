@@ -25,6 +25,22 @@
                                         aria-label="Close"></button>
                             </div>
                             <% } %>
+
+                            <div style="text-align: center; display: none;" id="carregamento">
+                                <button class="btn btn-primary" type="button" disabled>
+                                  <span class="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"></span>
+                                  <span class="sr-only"> Enviando mensagem....Aguarde... Esse processo poderár demorar bastante!</span>
+                                </button>
+                                <button class="btn btn-primary" type="button" disabled>
+                                  <span class="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"></span>
+                                  Enviando mensagem....Aguarde... Esse processo poderár demorar bastante!
+                                </button>
+                              </div><br>
+
+
+
+
+
                             <section class="section">
                                 <div class="row">
                                     <div class="col-lg-12">
@@ -36,10 +52,9 @@
                                     </div>
                                 </div>
 
-
                                 <div class="row">
                                     <form action="/whatsapp/send/contact" method="post">
-                                    <button type="submit" class="btn btn-primary">Enviar Mensagem</button><br><br>
+                                    <button type="submit" class="btn btn-primary" onclick="carregamento_btn();">Enviar Mensagem</button><br><br>
                                     <div class="col-sm-12">
                                         <textarea class="form-control" style="height: 100px" id="mensagem" name="mensagem" placeholder="Digite sua mensagem exemplo {nome do cliente} + mensagem + {nome da empresa}" required></textarea>
                                       </div><br>
@@ -52,7 +67,7 @@
                                                 <h5 class="card-title"></h5> 
                                                       
                                                <% dados.forEach(element => { %> 
-                                                <div class="form-check form-check-inline">                                                  
+                                                <div class="form-check form-check-inline" id="">                                                  
                                                     <input class="form-check-input" type="checkbox" checked  id="contato" name="contato" value="<%= element.nome %>clear|<%= element.telefone %>|<%= element.empresa_cnpj %> ">
                                                     <label class="form-check-label" for="inlineCheckbox1">Id: - <%= element.id %> - <%= element.nome %> - Telefone: - <%= element.telefone %> </label>
                                                   </div><br>
@@ -78,6 +93,13 @@
                     
                      });
                  </script>
+                 <script>
+                    function carregamento_btn() {
+                      setTimeout(                     
+                        document.getElementById('carregamento').style.display = 'block',      
+                      ),7000
+                    }
+                  </script>
     </body>
 
     </html>
