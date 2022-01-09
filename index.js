@@ -5,6 +5,8 @@ const flash = require('express-flash');
 const bodyParser = require('body-parser');
 const session = require('express-session');
 const adminAuth = require('./src/middlewares/adminAuth');
+const winston = require('winston');
+const logger = require('./src/logger/logger');
 
 const Route = require('./src/routes/routes');
 const whatsappController = require('./src/controllers/whatsappController');
@@ -35,5 +37,5 @@ app.use('/', whatsappController);
 
 
 app.listen(3333, (req, res) => {
-    console.log('Servidor ativo');
+    logger.info('Servidor inicializado');
 })

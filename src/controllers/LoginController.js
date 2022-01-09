@@ -11,6 +11,7 @@ exports.login = async (req, res) => {
     } catch (error) {
         var erro = 'Ocorreu algum erro tempo de execução do codigo linha 12 loginController';
         req.flash('erro', erro);
+        logger.error(error);
         res.redirect('/');
     }
 };
@@ -46,11 +47,13 @@ exports.authenticate = async (req, res) => {
         }).catch(erro => {
             erro = 'Email ou senha incorretos!';
             req.flash('erro', erro);
+            logger.error(erro);
             res.redirect('/login');
         });
     } catch (error) {
         var erro = 'Ocorreu algum erro tempo de execução do codigo linha 53 loginController';
         req.flash('erro', erro);
+        logger.error(error);
         res.redirect('/');
     }
 };
@@ -62,6 +65,7 @@ exports.logoof = async (req, res) => {
     } catch (error) {
         var erro = 'Ocorreu algum erro tempo de execução do codigo linha 64 loginController';
         req.flash('erro', erro);
+        logger.error(error);
         res.redirect('/');
     }
 };

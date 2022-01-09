@@ -14,11 +14,13 @@ exports.company_list = async (req, res) => {
         database.select('*').table('empresa').then(dados => {
             res.render('company/index', { erro: erro, sucesso: sucesso, dados: dados });
         }).catch(erro => {
+            logger.error(erro);
             console.log(erro);
         });
     } catch (error) {
         var erro = 'Ocorreu algum erro tempo de execução do codigo linha 20 companyController';
         req.flash('erro', erro);
+        logger.error(error);
         res.redirect('/');
     }
 }
@@ -29,6 +31,7 @@ exports.company_new = async (req, res) => {
     } catch (error) {
         var erro = 'Ocorreu algum erro tempo de execução do codigo linha 30 companyController';
         req.flash('erro', erro);
+        logger.error(error);
         res.redirect('/');
     }
 };
@@ -47,11 +50,13 @@ exports.company_update = async (req, res) => {
         }).catch(erro => {
             var erro = 'Erro ao buscar empresa, chame o suporte tecnico';
             req.flash('erro', erro);
+            logger.error(erro);
             res.redirect('/company');
         });
     } catch (error) {
         var erro = 'Ocorreu algum erro tempo de execução do codigo linha 53 companyController';
         req.flash('erro', erro);
+        logger.error(error);
         res.redirect('/');
     }
 };
@@ -91,12 +96,14 @@ exports.company_new2 = async (req, res) => {
             companyModel.create(dados);
             req.flash('sucesso', suscesso);
         } catch (error) {
+            logger.error(error);
             req.flash('erro', erro);
         }
         res.redirect('/company');
     } catch (error) {
         var erro = 'Ocorreu algum erro tempo de execução do codigo linha 98 companyController';
         req.flash('erro', erro);
+        logger.error(error);
         res.redirect('/');
     }
 };
@@ -120,6 +127,7 @@ exports.company_delete_id = async (req, res) => {
     } catch (error) {
         var erro = 'Ocorreu algum erro tempo de execução do codigo linha 121 companyController';
         req.flash('erro', erro);
+        logger.error(error);
         res.redirect('/');
     }
 };
@@ -162,11 +170,13 @@ exports.company_update2 = async (req, res) => {
             res.redirect('/company');
         } catch (error) {
             req.flash('erro', erro);
+            logger.error(error);
             res.redirect('/company');
         }
     } catch (error) {
         var erro = 'Ocorreu algum erro tempo de execução do codigo linha 168 companyController';
         req.flash('erro', erro);
+        logger.error(error);
         res.redirect('/');
     }
 };

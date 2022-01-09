@@ -3,15 +3,17 @@ const router = express.Router();
 const adminAuth = require('../middlewares/adminAuth');
 const upload = require('../middlewares/upload');
 const Read = require('../middlewares/Read');
+const online = require('../middlewares/online');
 const Process = require('../middlewares/Process');
 const database = require('../database/database');
 const fs = require('fs');
 const axios = require('axios');
+const logger = require('../logger/logger');
 
 
 
 
-router.get('/whatsapp/session', adminAuth, (req, res) => {
+router.get('/whatsapp/session', adminAuth, online, (req, res) => {
   try {
     var cnpj = req.session.user.cnpj;
     database.select(['apitoken', 'servidor', 'session', 'webhook']).where({ 'cnpj': cnpj }).table('empresa').then(dados_empresa => {
@@ -24,10 +26,11 @@ router.get('/whatsapp/session', adminAuth, (req, res) => {
   } catch (error) {
     var erro = 'Ocorreu algum erro tempo de execução do codigo linha 25 whatsappController';
     req.flash('erro', erro);
+    logger.error(error);
     res.redirect('/');
   }
 });
-router.get('/whatsapp/import', adminAuth, (req, res) => {
+router.get('/whatsapp/import', adminAuth, online, (req, res) => {
   try {
     var erro = req.flash('erro');
     var sucesso = req.flash('sucesso');
@@ -37,10 +40,11 @@ router.get('/whatsapp/import', adminAuth, (req, res) => {
   } catch (error) {
     var erro = 'Ocorreu algum erro tempo de execução do codigo linha 38 whatsappController';
     req.flash('erro', erro);
+    logger.error(error);
     res.redirect('/');
   }
 });
-router.get('/whatsapp/status', adminAuth, (req, res) => {
+router.get('/whatsapp/status', adminAuth, online, (req, res) => {
   try {
     var erro = req.flash('erro');
     var sucesso = req.flash('sucesso');
@@ -87,10 +91,11 @@ router.get('/whatsapp/status', adminAuth, (req, res) => {
   } catch (error) {
     var erro = 'Ocorreu algum erro tempo de execução do codigo linha 88 whatsappController';
     req.flash('erro', erro);
+    logger.error(error);
     res.redirect('/');
   }
 });
-router.get('/whatsapp/session/logout', adminAuth, (req, res) => {
+router.get('/whatsapp/session/logout', adminAuth, online, (req, res) => {
   try {
     var cnpj = req.session.user.cnpj;
     database.select('*').where({ 'cnpj': cnpj }).table('empresa').then(dados => {
@@ -134,10 +139,11 @@ router.get('/whatsapp/session/logout', adminAuth, (req, res) => {
   } catch (error) {
     var erro = 'Ocorreu algum erro tempo de execução do codigo linha 135 whatsappController';
     req.flash('erro', erro);
+    logger.error(error);
     res.redirect('/');
   }
 });
-router.get('/whatsapp/contact/search', adminAuth, (req, res) => {
+router.get('/whatsapp/contact/search', adminAuth, online, (req, res) => {
   try {
     var sucesso = req.flash('sucesso');
     sucesso = sucesso == undefined || sucesso.length == 0 || sucesso == '' ? undefined : sucesso;
@@ -151,10 +157,11 @@ router.get('/whatsapp/contact/search', adminAuth, (req, res) => {
   } catch (error) {
     var erro = 'Ocorreu algum erro tempo de execução do codigo linha 152 whatsappController';
     req.flash('erro', erro);
+    logger.error(error);
     res.redirect('/');
   }
 });
-router.get('/whatsapp/contact/import', adminAuth, (req, res) => {
+router.get('/whatsapp/contact/import', adminAuth, online, (req, res) => {
   try {
     var cnpj = req.session.user.cnpj;
     database.select('*').where({ 'cnpj': cnpj }).table('empresa').then(dados => {
@@ -205,6 +212,7 @@ router.get('/whatsapp/contact/import', adminAuth, (req, res) => {
         }).catch(er => {
           erro = 'Ops! ocorreu algum problema ao importar os contatos \n para mais detelhe mais entre em contato com o suporte tecnico';
           req.flash('erro', erro);
+          logger.error(er);
           console.log(er);
           res.redirect('/');
         });
@@ -212,15 +220,17 @@ router.get('/whatsapp/contact/import', adminAuth, (req, res) => {
     }).catch(erro => {
       erro = 'Ops! ocorreu algum problema ao importar os contatos \n para mais detelhe mais entre em contato com o suporte tecnico';
       req.flash('erro', erro);
+      logger.error(erro);
       res.redirect('/whatsapp/status_off', { erro: erro });
     });
   } catch (error) {
     var erro = 'Ocorreu algum erro tempo de execução do codigo linha 218 whatsappController';
     req.flash('erro', erro);
+    logger.error(error);
     res.redirect('/');
   }
 });
-router.post('/whatsapp/send', adminAuth, async (req, res) => {
+router.post('/whatsapp/send', adminAuth, online, async (req, res) => {
   try {
     var erro;
     var sucesso;
@@ -285,6 +295,7 @@ router.post('/whatsapp/send', adminAuth, async (req, res) => {
                   res.redirect('/whatsapp/import', { erro: erro });
                 }
               }).catch(err => {
+                logger.error(err);
                 console.log(err);
               });
             }
@@ -293,11 +304,13 @@ router.post('/whatsapp/send', adminAuth, async (req, res) => {
           console.log('Ops ocorreu algum erro chame o suporte tecnico ' + err);
           erro = 'Não foi possivel encontrar a mensagem, operação não será concluida \n chame o suporte tecnico para mais detalhe';
           req.flash('erro', erro);
+          logger.error(err);
           res.redirect('/whatsapp/import');
         });
       }).catch(err => {
         erro = 'Não foi possivel encontrar a mensagem, operação não será concluida \n chame o suporte tecnico para mais detalhe';
         req.flash('erro', erro);
+        logger.error(err);
         res.redirect('/whatsapp/import');
       });
       sucesso = 'Mensagem esta sendo enviada para seu cliente, este processo pode demorar um pouco....';
@@ -307,10 +320,11 @@ router.post('/whatsapp/send', adminAuth, async (req, res) => {
   } catch (error) {
     var erro = 'Ocorreu algum erro tempo de execução do codigo linha 310 whatsappController';
     req.flash('erro', erro);
+    logger.error(error);
     res.redirect('/');
   }
 });
-router.post('/whatsapp/import/arquivo', adminAuth, upload.single('arquivo'), async (req, res) => {
+router.post('/whatsapp/import/arquivo', adminAuth, online, upload.single('arquivo'), async (req, res) => {
   try {
     var mensagem = req.body.mensagem
     var erro;
@@ -355,10 +369,11 @@ router.post('/whatsapp/import/arquivo', adminAuth, upload.single('arquivo'), asy
   } catch (error) {
     var erro = 'Ocorreu algum erro tempo de execução do codigo linha 356 whatsappController';
     req.flash('erro', erro);
+    logger.error(error);
     res.redirect('/');
   }
 });
-router.get('/whatsapp/contact/edit/:id', adminAuth, (req, res) => {
+router.get('/whatsapp/contact/edit/:id', adminAuth, online, (req, res) => {
   try {
     var id = parseInt(req.params.id);
     if (id) {
@@ -377,10 +392,11 @@ router.get('/whatsapp/contact/edit/:id', adminAuth, (req, res) => {
   } catch (error) {
     var erro = 'Ocorreu algum erro tempo de execução do codigo linha 378 whatsappController';
     req.flash('erro', erro);
+    logger.error(error);
     res.redirect('/');
   }
 });
-router.post('/whatsapp/contact/update', adminAuth, (req, res) => {
+router.post('/whatsapp/contact/update', adminAuth, online, (req, res) => {
   try {
     var nome = req.body.nome_contato
     var telefone = req.body.telefone;
@@ -399,16 +415,18 @@ router.post('/whatsapp/contact/update', adminAuth, (req, res) => {
       }).catch(erro => {
         erro = 'Ops! ocorreu algum problema, para mais detelhe mais entre em contato com o suporte tecnico';
         req.flash('erro', erro);
+        logger.error(erro);
         res.redirect('/whatsapp/contact/search');
       });
     }
   } catch (error) {
     var erro = 'Ocorreu algum erro tempo de execução do codigo linha 406 whatsappController';
     req.flash('erro', erro);
+    logger.error(error);
     res.redirect('/');
   }
 });
-router.post('/whatsapp/contact/delete', adminAuth, (req, res) => {
+router.post('/whatsapp/contact/delete', adminAuth, online, (req, res) => {
   try {
     var id = req.body.id;
     var empresa_cnpj = req.body.empresa_cnpj;
@@ -426,16 +444,18 @@ router.post('/whatsapp/contact/delete', adminAuth, (req, res) => {
         }).catch(err => {
           erro = 'Ops! ocorreu algum problema ao deletar o contato, para mais detelhe mais entre em contato com o suporte tecnico';
           req.flash('erro', err);
+          logger.error(err);
           res.redirect('/whatsapp/contact/search');
         });
     }
   } catch (error) {
     var erro = 'Ocorreu algum erro tempo de execução do codigo linha 433 whatsappController';
     req.flash('erro', erro);
+    logger.error(error);
     res.redirect('/');
   }
 });
-router.get('/whatsapp/send/contact', adminAuth, (req, res) => {
+router.get('/whatsapp/send/contact', adminAuth, online, (req, res) => {
   try {
     var sucesso;
     var erro;
@@ -448,15 +468,17 @@ router.get('/whatsapp/send/contact', adminAuth, (req, res) => {
     }).catch(erro => {
       erro = 'Ops! ocorreu algum problema, para mais detelhe mais entre em contato com o suporte tecnico';
       req.flash('erro', erro);
+      logger.error(erro);
       res.redirect('/whatsapp/contact/send');
     });
   } catch (error) {
     var erro = 'Ocorreu algum erro tempo de execução do codigo linha 454 whatsappController';
     req.flash('erro', erro);
+    logger.error(error);
     res.redirect('/');
   }
 });
-router.post('/whatsapp/send/contact', adminAuth, (req, res) => {
+router.post('/whatsapp/send/contact', adminAuth, online, (req, res) => {
   try {
     var erro;
     var sucesso;
@@ -495,15 +517,18 @@ router.post('/whatsapp/send/contact', adminAuth, (req, res) => {
               res.redirect('/whatsapp/import');
             }
           }).catch(err => {
+            logger.error(err);
             console.log(err);
           })
         } catch (error) {
           erro = 'Não foi possivel enviar as mensagem, servidor não esta respondendo \n chame o suporte tecnico para mais detalhe';
           req.flash('erro', erro);
+          logger.error(error);
           res.redirect('/');
         }
       });
     }).catch(erro => {
+      logger.error(erro);
       console.log(erro);
     });
     sucesso = (sucesso == undefined || sucesso == '' || sucesso.length == 0) ? undefined : sucesso;
@@ -515,15 +540,17 @@ router.post('/whatsapp/send/contact', adminAuth, (req, res) => {
     }).catch(erro => {
       erro = 'Ops! ocorreu algum problema, para mais detelhe mais entre em contato com o suporte tecnico';
       req.flash('erro', erro);
+      logger.error(erro);
       res.redirect('/whatsapp/contact/send');
     });
   } catch (error) {
     var erro = 'Ocorreu algum erro tempo de execução do codigo linha 521 whatsappController';
     req.flash('erro', erro);
+    logger.error(error);
     res.redirect('/');
   }
 });
-router.get('/whatsapp/import/archive', adminAuth, (req, res) => {
+router.get('/whatsapp/import/archive', adminAuth, online, (req, res) => {
   try {
     var erro = req.flash('erro');
     var sucesso = req.flash('sucesso');
@@ -533,10 +560,11 @@ router.get('/whatsapp/import/archive', adminAuth, (req, res) => {
   } catch (error) {
     var erro = 'Ocorreu algum erro tempo de execução do codigo linha 534 whatsappController';
     req.flash('erro', erro);
+    logger.error(error);
     res.redirect('/');
   }
 });
-router.post('/whatsapp/import/arquivo_archive', adminAuth, upload.array('arquivo'), async (req, res) => {
+router.post('/whatsapp/import/arquivo_archive', adminAuth, online, upload.array('arquivo'), async (req, res) => {
   try {
     var arquivos = req.files;
     var erro;
@@ -594,6 +622,7 @@ router.post('/whatsapp/import/arquivo_archive', adminAuth, upload.array('arquivo
                 console.error(err);
                 erro = 'Erro ao gravar as informações do arquivo .CSV, para o banco de dados \n entre em contato com o suporte para mais informação';
                 req.flash('erro', erro);
+                logger.error(err);
                 res.redirect('/whatsapp/import/arquivo_archive');
               });
             }
@@ -612,10 +641,11 @@ router.post('/whatsapp/import/arquivo_archive', adminAuth, upload.array('arquivo
   } catch (error) {
     var erro = 'Ocorreu algum erro tempo de execução do codigo linha 613 whatsappController';
     req.flash('erro', erro);
+    logger.error(error);
     res.redirect('/');
   }
 });
-router.post('/whatsapp/send_archive2', adminAuth, async (req, res) => {
+router.post('/whatsapp/send_archive2', adminAuth, online, async (req, res) => {
   try {
     var id_mensagem = req.body.codigo_mensagem;
     var empresa = req.session.user.cnpj;
@@ -653,11 +683,13 @@ router.post('/whatsapp/send_archive2', adminAuth, async (req, res) => {
                 res.redirect('/whatsapp/import');
               }
             }).catch(err => {
+              logger.error(err);
               console.log('Erro ----------------------------------------------   ' + err);
             })
           } catch (error) {
             erro = 'Não foi possivel enviar as mensagem, servidor não esta respondendo \n chame o suporte tecnico para mais detalhe';
             req.flash('erro', error);
+            logger.error(error);
             res.redirect('/');
           }
         });
@@ -692,11 +724,13 @@ router.post('/whatsapp/send_archive2', adminAuth, async (req, res) => {
                   res.redirect('/whatsapp/import/arquivo_archive');
                 }
               }).catch(err => {
+                logger.error(err);
                 console.log('Erro ----------------------------------------------   ' + err);
               })
             } catch (error) {
               erro = 'Não foi possivel enviar as mensagem, servidor não esta respondendo \n chame o suporte tecnico para mais detalhe';
               req.flash('erro', erro);
+              logger.error(error);
               res.redirect('/whatsapp/import/arquivo_archive');
             }
           });
@@ -709,10 +743,11 @@ router.post('/whatsapp/send_archive2', adminAuth, async (req, res) => {
   } catch (error) {
     var erro = 'Ocorreu algum erro tempo de execução do codigo linha 710 whatsappController';
     req.flash('erro', erro);
+    logger.error(error);
     res.redirect('/');
   }
 });
-router.get('/whatsapp/import/charge', adminAuth, (req, res) => {
+router.get('/whatsapp/import/charge', adminAuth, online, (req, res) => {
   try {
     var erro = req.flash('erro');
     var sucesso = req.flash('sucesso');
@@ -722,10 +757,11 @@ router.get('/whatsapp/import/charge', adminAuth, (req, res) => {
   } catch (error) {
     var erro = 'Ocorreu algum erro tempo de execução do codigo linha 723 whatsappController';
     req.flash('erro', erro);
+    logger.error(error);
     res.redirect('/');
   }
 });
-router.post('/whatsapp/charge/import', adminAuth, upload.single('arquivo'), (req, res) => {
+router.post('/whatsapp/charge/import', adminAuth, upload.single('arquivo'), async (req, res) => {
   try {
     var arquivos = req.file;
     var erro;
@@ -762,6 +798,7 @@ router.post('/whatsapp/charge/import', adminAuth, upload.single('arquivo'), (req
               console.error(err);
               erro = 'Erro ao gravar as informações do arquivo .CSV, para o banco de dados \n entre em contato com o suporte para mais informação';
               req.flash('erro', erro);
+              logger.error(err);
               res.redirect('/whatsapp/import/charge');
             });
           });
@@ -781,10 +818,11 @@ router.post('/whatsapp/charge/import', adminAuth, upload.single('arquivo'), (req
   } catch (error) {
     var erro = 'Ocorreu algum erro tempo de execução do codigo linha 781 whatsappController';
     req.flash('erro', erro);
+    logger.error(error);
     res.redirect('/');
   }
 });
-router.post('/whatsapp/send/charge', adminAuth, (req, res) => {
+router.post('/whatsapp/send/charge', adminAuth, online, async (req, res) => {
   try {
     var codigo_cobranca = req.body.codigo_cobranca;
     var empresa = req.session.user.cnpj;
@@ -805,40 +843,45 @@ router.post('/whatsapp/send/charge', adminAuth, (req, res) => {
               },
               data: data
             };
+
+            axios(config).then(response => {
+              if (response.data.result != 200) {
+                erro = 'Não foi possivel enviar as mensagem, servidor não esta respondendo \n chame o suporte tecnico para mais detalhe';
+                req.flash('erro', erro);
+                res.redirect('/whatsapp/import/charge');
+              }
+            });
           } catch (error) {
+            logger.error(error);
             erro = 'Não foi possivel enviar as mensagem, servidor não esta respondendo \n chame o suporte tecnico para mais detalhe';
             req.flash('erro', erro);
             res.redirect('/whatsapp/import/charge');
           }
-          axios(config).then(response => {
-            if (response.data.result != 200) {
-              erro = 'Não foi possivel enviar as mensagem, servidor não esta respondendo \n chame o suporte tecnico para mais detalhe';
-              req.flash('erro', erro);
-              res.redirect('/whatsapp/import/charge');
-            }
-          });
         };
       }).catch(err => {
         erro = 'Não foi possivel buscar dados da empresa \n entre em contato com o suporte para mais informação';
         req.flash('erro', erro);
+        logger.error(err);
         res.redirect('/whatsapp/import/charge');
       });
 
     }).catch(err => {
       erro = 'Erro ao enviar mensagem \n entre em contato com o suporte para mais informação';
       req.flash('erro', erro);
+      logger.error(err);
       res.redirect('/whatsapp/import/charge');
-    })
+    });
     sucesso = 'Mensagem esta sendo enviada para seu cliente, este processo pode demorar um pouco....';
     req.flash('sucesso', sucesso);
     res.redirect('/whatsapp/import/charge');
   } catch (error) {
     var erro = 'Ocorreu algum erro tempo de execução do codigo linha 836 whatsappController';
     req.flash('erro', erro);
+    logger.error(error);
     res.redirect('/');
   }
 });
-router.get('/whatsapp/send/contact2', adminAuth, (req, res) => {
+router.get('/whatsapp/send/contact2', adminAuth, online, (req, res) => {
   try {
     var erro = req.flash('erro');
     var sucesso = req.flash('sucesso');
@@ -850,113 +893,117 @@ router.get('/whatsapp/send/contact2', adminAuth, (req, res) => {
   } catch (error) {
     var erro = 'Ocorreu algum erro tempo de execução do codigo linha 852 whatsappController';
     req.flash('erro', erro);
+    logger.error(error);
     res.redirect('/');
   }
 });
-router.post('/whatsapp/send/contact2', adminAuth, upload.array('imagem'), async (req, res) => {
+router.post('/whatsapp/send/contact2', adminAuth, online, upload.array('imagem'), async (req, res) => {
   try {
     var arquivo = req.files;
-  console.log(req.body.imagem);
-  var erro, sucesso;
-  var { contato, mensagem } = req.body;
-  console.log(contato);
-  JSON.stringify(contato, null, 2);
-  var resultado = [];
-  contato.forEach(contact => {
-    r = contact.split('|');
-    resultado.push({ nome: r[0], telefone: r[1], cnpj: r[2] });
-  })
-  var cnpj = req.session.user.cnpj;
-  database.select('*').where({ cnpj: `${cnpj}` }).table('empresa').then(dados_empresa => {
-    resultado.forEach(dados => {
-      var data = {
-        'session': dados_empresa[0].session,
-        'number': '55' + dados.telefone,
-        'text': dados.nome + ' ' + mensagem + ' ' + dados_empresa[0].nome_empresa
-      }
-      try {
-        var config = {
-          method: 'POST',
-          url: dados_empresa[0].servidor + '/sendText',
-          headers: {
-            "sessionkey": dados_empresa[0].session,
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + dados_empresa[0].apitoken
-          },
-          data: JSON.stringify(data),
+    console.log(req.body.imagem);
+    var erro, sucesso;
+    var { contato, mensagem } = req.body;
+    console.log(contato);
+    JSON.stringify(contato, null, 2);
+    var resultado = [];
+    contato.forEach(contact => {
+      r = contact.split('|');
+      resultado.push({ nome: r[0], telefone: r[1], cnpj: r[2] });
+    })
+    var cnpj = req.session.user.cnpj;
+    database.select('*').where({ cnpj: `${cnpj}` }).table('empresa').then(dados_empresa => {
+      resultado.forEach(dados => {
+        var data = {
+          'session': dados_empresa[0].session,
+          'number': '55' + dados.telefone,
+          'text': dados.nome + ' ' + mensagem + ' ' + dados_empresa[0].nome_empresa
         }
-        axios(config).then(response => {
+        try {
+          var config = {
+            method: 'POST',
+            url: dados_empresa[0].servidor + '/sendText',
+            headers: {
+              "sessionkey": dados_empresa[0].session,
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + dados_empresa[0].apitoken
+            },
+            data: JSON.stringify(data),
+          }
+          axios(config).then(response => {
+            if (response.data.result != 200) {
+              erro = 'Não foi possivel enviar as mensagem, servidor não esta respondendo \n chame o suporte tecnico para mais detalhe';
+              req.flash('erro', erro);
+              res.redirect('/whatsapp/send/contact2');
+            }
+          })
+        } catch (error) {
           if (response.data.result != 200) {
             erro = 'Não foi possivel enviar as mensagem, servidor não esta respondendo \n chame o suporte tecnico para mais detalhe';
             req.flash('erro', erro);
+            logger.error(error);
             res.redirect('/whatsapp/send/contact2');
           }
-        })
-      } catch (error) {
-        if (response.data.result != 200) {
-          erro = 'Não foi possivel enviar as mensagem, servidor não esta respondendo \n chame o suporte tecnico para mais detalhe';
-          req.flash('erro', erro);
-          res.redirect('/whatsapp/send/contact2');
         }
-      }
+      });
     });
-  });
 
 
 
-  // Enviando as imagem 
-  database.select('*').where({ cnpj: `${cnpj}` }).table('empresa').then(dados_empresa => {
-    arquivo.forEach(image => {
+    // Enviando as imagem 
+    database.select('*').where({ cnpj: `${cnpj}` }).table('empresa').then(dados_empresa => {
+      arquivo.forEach(image => {
 
-      /**
-        * Aqui começa enviar a image
-        */
-      resultado.forEach(dado => {
-        arquivo.forEach(image => {
+        /**
+          * Aqui começa enviar a image
+          */
+        resultado.forEach(dado => {
+          arquivo.forEach(image => {
 
-          console.log(dado);
-          var data = {
-            "session": dados_empresa[0].session,
-            "number": "55" + dado.telefone,
-            "caption": "",
-            "path": dados_empresa[0].ip + '/upload/' + image.filename
-          }
-          try {
-            var config = {
-              method: "POST",
-              url: dados_empresa[0].servidor + "/sendImage",
-              headers: {
-                "sessionkey": dados_empresa[0].session,
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + dados_empresa[0].apitoken,
-              },
-              data: JSON.stringify(data)
-            };
-            axios(config).then(response => {
-              console.log('entrou no response');
-              if (response.data.result != 200 || response.data.result != 500) {
-                erro = 'Não foi possivel enviar as mensagem, servidor não esta respondendo \n chame o suporte tecnico para mais detalhe';
-                req.flash('erro', erro);
-                res.redirect('/whatsapp/send/contact2');
-              }
-            }).catch(err => {
-              console.log('Erro ----------------------------------------------   ' + err);
-            })
-          } catch (error) {
-            erro = 'Não foi possivel enviar as mensagem, servidor não esta respondendo \n chame o suporte tecnico para mais detalhe';
-            req.flash('erro', error);
-            res.redirect('/whatsapp/send/contact2');
-          }
+            console.log(dado);
+            var data = {
+              "session": dados_empresa[0].session,
+              "number": "55" + dado.telefone,
+              "caption": "",
+              "path": dados_empresa[0].ip + '/upload/' + image.filename
+            }
+            try {
+              var config = {
+                method: "POST",
+                url: dados_empresa[0].servidor + "/sendImage",
+                headers: {
+                  "sessionkey": dados_empresa[0].session,
+                  'Content-Type': 'application/json',
+                  'Authorization': 'Bearer ' + dados_empresa[0].apitoken,
+                },
+                data: JSON.stringify(data)
+              };
+              axios(config).then(response => {
+                console.log('entrou no response');
+                if (response.data.result != 200 || response.data.result != 500) {
+                  erro = 'Não foi possivel enviar as mensagem, servidor não esta respondendo \n chame o suporte tecnico para mais detalhe';
+                  req.flash('erro', erro);
+                  res.redirect('/whatsapp/send/contact2');
+                }
+              }).catch(err => {
+                logger.error(err);
+                console.log('Erro ----------------------------------------------   ' + err);
+              })
+            } catch (error) {
+              erro = 'Não foi possivel enviar as mensagem, servidor não esta respondendo \n chame o suporte tecnico para mais detalhe';
+              req.flash('erro', error);
+              res.redirect('/whatsapp/send/contact2');
+            }
+          });
         });
       });
     });
-  });
-  sucesso = 'Mensagem esta sendo enviada para seu cliente, este processo pode demorar um pouco....';
-  req.flash('sucesso', sucesso);
-  res.redirect('/whatsapp/send/contact2');
+    sucesso = 'Mensagem esta sendo enviada para seu cliente, este processo pode demorar um pouco....';
+    req.flash('sucesso', sucesso);
+    res.redirect('/whatsapp/send/contact2');
   } catch (error) {
     var erro = 'Ocorreu algum erro tempo de execução do codigo linha 958 whatsappController';
     req.flash('erro', erro);
+    logger.error(error);
     res.redirect('/');
   }
 });

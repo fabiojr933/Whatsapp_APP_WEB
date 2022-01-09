@@ -1,4 +1,5 @@
 const multer = require('multer');
+const logger = require('../logger/logger');
 
 module.exports = (multer ({
     storage: multer.diskStorage({
@@ -11,6 +12,7 @@ module.exports = (multer ({
           } catch (error) {
             var erro = 'Ocorreu algum erro tempo de execução do codigo linha 12 {middlewares} function multer';
             req.flash('erro', erro);
+            logger.error(error);
             res.redirect('/');
           }
         }

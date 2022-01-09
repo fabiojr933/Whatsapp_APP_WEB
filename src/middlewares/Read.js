@@ -1,5 +1,6 @@
 const fs = require('fs');
 const util = require('util');
+const logger = require('../logger/logger');
 
 class Read{
     constructor(){
@@ -10,6 +11,7 @@ class Read{
       try {
         return await this.read(file, {encoding: 'utf-8'});
       } catch (error) {
+        logger.error(error);
           return undefined;
       }
     }

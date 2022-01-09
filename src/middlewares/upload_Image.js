@@ -1,4 +1,5 @@
 const multer_image = require('multer');
+const logger = require('../logger/logger');
 
 module.exports = (multer_image ({
     storage: multer_image.diskStorage({
