@@ -9,6 +9,7 @@ const database = require('../database/database');
 const fs = require('fs');
 const axios = require('axios');
 const logger = require('../logger/logger');
+const { exit } = require('process');
 
 
 
@@ -16,12 +17,13 @@ const logger = require('../logger/logger');
 router.get('/whatsapp/session', adminAuth, online, (req, res) => {
   try {
     var cnpj = req.session.user.cnpj;
+    var dias_falta = req.session.user.dias_falta
     database.select(['apitoken', 'servidor', 'session', 'webhook']).where({ 'cnpj': cnpj }).table('empresa').then(dados_empresa => {
       var apitoken = dados_empresa[0].apitoken;
       var server = dados_empresa[0].servidor;
       var session = dados_empresa[0].session;
       var webhook = dados_empresa[0].webhook;
-      res.render('whatsapp/session', { apitoken_empresa: apitoken, server_empresa: server, session_empresa: session, webhook_empresa: webhook });
+      res.render('whatsapp/session', { apitoken_empresa: apitoken, server_empresa: server, session_empresa: session, webhook_empresa: webhook, dias_falta: dias_falta });
     });
   } catch (error) {
     var erro = 'Ocorreu algum erro tempo de execução do codigo linha 25 whatsappController';
@@ -36,7 +38,8 @@ router.get('/whatsapp/import', adminAuth, online, (req, res) => {
     var sucesso = req.flash('sucesso');
     erro = erro == undefined || erro.length == 0 ? undefined : erro;
     sucesso = sucesso == undefined || sucesso.length == 0 || sucesso == '' ? undefined : sucesso;
-    res.render('whatsapp/import', { erro: erro, sucesso: sucesso });
+    var dias_falta = req.session.user.dias_falta
+    res.render('whatsapp/import', { erro: erro, sucesso: sucesso, dias_falta: dias_falta});
   } catch (error) {
     var erro = 'Ocorreu algum erro tempo de execução do codigo linha 38 whatsappController';
     req.flash('erro', erro);
@@ -59,7 +62,8 @@ router.get('/whatsapp/status', adminAuth, online, (req, res) => {
       if (session_empresa == undefined || session_empresa == '') {
         erro = 'Não foi poossivel encontrar a sessão da empresa \n chame o suporte tecnico para mais detalhe';
         req.flash('erro', erro);
-        res.redirect('/', { erro: erro });
+        var dias_falta = req.session.user.dias_falta
+        res.redirect('/', { erro: erro, dias_falta: dias_falta});
       } else {
         var data = {
           'session': session_empresa
@@ -75,18 +79,21 @@ router.get('/whatsapp/status', adminAuth, online, (req, res) => {
         axios(config).then(response => {
           if (response.data.status == 'inChat') {
             var status = 'On-line';
-            res.render('whatsapp/status', { erro: erro, sucesso: sucesso, nome_empresa: nome_empresa, cnpj_empresa: cnpj_empresa, status: status });
+            var dias_falta = req.session.user.dias_falta
+            res.render('whatsapp/status', { erro: erro, sucesso: sucesso, nome_empresa: nome_empresa, cnpj_empresa: cnpj_empresa, status: status, dias_falta: dias_falta});
           }
         }).catch(erro => {
           var status = 'Off-line';
           erro = 'Atenção sua sessão esta off-line, seu celular não esta conectado';
-          res.render('whatsapp/status_off', { erro: erro, nome_empresa: nome_empresa, cnpj_empresa: cnpj_empresa, status: status });
+          var dias_falta = req.session.user.dias_falta
+          res.render('whatsapp/status_off', { erro: erro, nome_empresa: nome_empresa, cnpj_empresa: cnpj_empresa, status: status, dias_falta: dias_falta});
         });
       }
     }).catch(erro => {
       var status = 'Off-line';
       erro = 'Atenção sua sessão esta off-line, seu celular não esta conectado';
-      res.render('whatsapp/status_off', { erro: erro, nome_empresa: nome_empresa, cnpj_empresa: cnpj_empresa, status: status });
+      var dias_falta = req.session.user.dias_falta
+      res.render('whatsapp/status_off', { erro: erro, nome_empresa: nome_empresa, cnpj_empresa: cnpj_empresa, status: status, dias_falta: dias_falta});
     });
   } catch (error) {
     var erro = 'Ocorreu algum erro tempo de execução do codigo linha 88 whatsappController';
@@ -148,7 +155,8 @@ router.get('/whatsapp/contact/search', adminAuth, online, (req, res) => {
     var sucesso = req.flash('sucesso');
     sucesso = sucesso == undefined || sucesso.length == 0 || sucesso == '' ? undefined : sucesso;
     database.select('*').table('contato').then(dados => {
-      res.render('whatsapp/contact', { sucesso: sucesso, dados: dados });
+      var dias_falta = req.session.user.dias_falta
+      res.render('whatsapp/contact', { sucesso: sucesso, dados: dados, dias_falta: dias_falta});
     }).catch(err => {
       erro = 'Ops! ocorreu algum problema ao importar os contatos \n para mais detelhe mais entre em contato com o suporte tecnico';
       req.flash('erro', erro);
@@ -161,8 +169,9 @@ router.get('/whatsapp/contact/search', adminAuth, online, (req, res) => {
     res.redirect('/');
   }
 });
-router.get('/whatsapp/contact/import', adminAuth, online, (req, res) => {
+router.get('/whatsapp/contact/import', adminAuth, online, async (req, res) => {
   try {
+    
     var cnpj = req.session.user.cnpj;
     database.select('*').where({ 'cnpj': cnpj }).table('empresa').then(dados => {
       var session_empresa = dados[0].session;
@@ -190,24 +199,24 @@ router.get('/whatsapp/contact/import', adminAuth, online, (req, res) => {
             var nome = dados.name;
             var telefone = dados.phone.substr(2, 10);
             if (nome != '' || nome == undefined) {
-              database.count('telefone').where({ 'telefone': telefone }).table('contato').then(contato => {
-                //  console.log(contato[0].count);
+              database.count('telefone').where({ 'telefone': telefone }).table('contato').then(contato => {               
                 if (contato[0].count == 0) {
                   console.log(contato[0].count);
-                  database.insert({ 'nome': nome, 'telefone': telefone, 'empresa_cnpj': cnpj }).into('contato').then(res => {
+                  database.insert({ 'nome': nome, 'telefone': telefone, 'empresa_cnpj': cnpj }).into('contato').then(r => {
+                   
                   }).catch(err => {
-                    erro = 'Ops! ocorreu algum problema ao importar os contatos \n para mais detelhe mais entre em contato com o suporte tecnico';
+                    var erro = 'Ocorreu algum erro tempo de execução do codigo linha 310 whatsappController';
                     req.flash('erro', erro);
-                    console.log(err);
-                    res.redirect('/whatsapp/contact/search');
+                    logger.error(err);
+                     res.redirect('/');
                   });
                 }
               });
             }
-          });
+          });  
           sucesso = 'Todos os contatos importados com sucesso';
           req.flash('sucesso', sucesso);
-          res.redirect('/whatsapp/contact/search');
+          res.redirect('/whatsapp/contact/search');        
 
         }).catch(er => {
           erro = 'Ops! ocorreu algum problema ao importar os contatos \n para mais detelhe mais entre em contato com o suporte tecnico';
@@ -352,33 +361,39 @@ router.post('/whatsapp/import/arquivo', adminAuth, online, upload.single('arquiv
         }
         for (const [mensagem, cliente, telefone, empresa, codigo_cliente] of dadosProcessados) {
           database.insert({ codigo_mensagem: codigo_mensagem, codigo_cliente: codigo_cliente, cliente: cliente, mensagem: mensagem, telefone: telefone, empresa: empresa }).into('mensagem').then(sucesso => {
-            console.log(sucesso);
-          }).catch(erro => {
+          
+          }).catch(err => {
             erro = 'Erro ao gravar as informações do arquivo .CSV, para o banco de dados \n entre em contato com o suporte para mais informação';
             req.flash('erro', erro);
-            res.redirect('/whatsapp/import');
+            logger.error(erro);
+            logger.error(err);
+            res.redirect('/');
           });
         }
-        res.render('whatsapp/index', { dados_body: dadosProcessados, dados_Header: dados_header, codigo_mensagem: codigo_mensagem, cpf_cnpj_empresa: cpf_cnpj_empresa });
+        var dias_falta = req.session.user.dias_falta
+        res.render('whatsapp/index', { dados_body: dadosProcessados, dados_Header: dados_header, codigo_mensagem: codigo_mensagem, cpf_cnpj_empresa: cpf_cnpj_empresa, dias_falta: dias_falta});
       });
     } else {
       erro = 'O arquivo selecionado esta com um formatado invalido \n o formato valido é .CSV \n entre em contato com o suporte para mais informação';
       req.flash('erro', erro);
       res.redirect('/whatsapp/import');
     }
+  
   } catch (error) {
     var erro = 'Ocorreu algum erro tempo de execução do codigo linha 356 whatsappController';
     req.flash('erro', erro);
     logger.error(error);
     res.redirect('/');
   }
+  
 });
 router.get('/whatsapp/contact/edit/:id', adminAuth, online, (req, res) => {
   try {
     var id = parseInt(req.params.id);
     if (id) {
       database.select('*').table('contato').where({ 'id': id }).then(dados => {
-        res.render('whatsapp/contact/edit', { dados: dados });
+        var dias_falta = req.session.user.dias_falta
+        res.render('whatsapp/contact/edit', { dados: dados, dias_falta: dias_falta});
       }).catch(erro => {
         erro = 'Ops! ocorreu algum problema \n para mais detelhe mais entre em contato com o suporte tecnico';
         req.flash('erro', erro);
@@ -464,7 +479,8 @@ router.get('/whatsapp/send/contact', adminAuth, online, (req, res) => {
     database.select('*').table('contato').then(dados => {
       sucesso = 'Contatos importado com sucesso';
       req.flash('sucesso', sucesso);
-      res.render('whatsapp/contact/send', { erro: erro, sucesso: sucesso, dados: dados });
+      var dias_falta = req.session.user.dias_falta
+      res.render('whatsapp/contact/send', { erro: erro, sucesso: sucesso, dados: dados, dias_falta: dias_falta});
     }).catch(erro => {
       erro = 'Ops! ocorreu algum problema, para mais detelhe mais entre em contato com o suporte tecnico';
       req.flash('erro', erro);
@@ -492,7 +508,6 @@ router.post('/whatsapp/send/contact', adminAuth, online, (req, res) => {
     });
     var cnpj = req.session.user.cnpj;
 
-
     database.select('*').where({ 'cnpj': `${cnpj}` }).table('empresa').then(dados_empresa => {
       resultado.forEach(dado => {
         var data = {
@@ -500,6 +515,7 @@ router.post('/whatsapp/send/contact', adminAuth, online, (req, res) => {
           'number': '55' + dado.telefone,
           'text': dado.nome + ' ' + mensagem + ' ' + dados_empresa[0].nome_empresa
         }
+       
         try {
           var config = {
             method: 'POST',
@@ -536,7 +552,8 @@ router.post('/whatsapp/send/contact', adminAuth, online, (req, res) => {
     database.select('*').table('contato').then(dados => {
       sucesso = 'Mensagem esta sendo enviada para seu cliente, este processo pode demorar um pouco....';
       req.flash('sucesso', sucesso);
-      res.render('whatsapp/contact/send', { erro: erro, sucesso: sucesso, dados: dados });
+      var dias_falta = req.session.user.dias_falta
+      res.render('whatsapp/contact/send', { erro: erro, sucesso: sucesso, dados: dados, dias_falta: dias_falta});
     }).catch(erro => {
       erro = 'Ops! ocorreu algum problema, para mais detelhe mais entre em contato com o suporte tecnico';
       req.flash('erro', erro);
@@ -556,7 +573,8 @@ router.get('/whatsapp/import/archive', adminAuth, online, (req, res) => {
     var sucesso = req.flash('sucesso');
     erro = erro == undefined || erro.length == 0 ? undefined : erro;
     sucesso = sucesso == undefined || sucesso.length == 0 || sucesso == '' ? undefined : sucesso;
-    res.render('whatsapp/import_image', { erro: erro, sucesso: sucesso });
+    var dias_falta = req.session.user.dias_falta
+    res.render('whatsapp/import_image', { erro: erro, sucesso: sucesso, dias_falta: dias_falta});
   } catch (error) {
     var erro = 'Ocorreu algum erro tempo de execução do codigo linha 534 whatsappController';
     req.flash('erro', erro);
@@ -634,7 +652,8 @@ router.post('/whatsapp/import/arquivo_archive', adminAuth, online, upload.array(
       database('mensagem').max('codigo_mensagem').then(maxino => {
         database.select('*').table('mensagem').where({ 'codigo_mensagem': maxino[0].max }).then(dados => {
           console.log('image gravado com sucesso');
-          res.render('whatsapp/send_archive', { dados: dados, codigo_mensagem: maxino[0].max });
+          var dias_falta = req.session.user.dias_falta
+          res.render('whatsapp/send_archive', { dados: dados, codigo_mensagem: maxino[0].max, dias_falta: dias_falta});
         });
       });
     }, 2000);
@@ -753,7 +772,8 @@ router.get('/whatsapp/import/charge', adminAuth, online, (req, res) => {
     var sucesso = req.flash('sucesso');
     erro = erro == undefined || erro.length == 0 ? undefined : erro;
     sucesso = sucesso == undefined || sucesso.length == 0 ? undefined : sucesso;
-    res.render('whatsapp/cobranca/import', { erro: erro, sucesso: sucesso });
+    var dias_falta = req.session.user.dias_falta
+    res.render('whatsapp/cobranca/import', { erro: erro, sucesso: sucesso, dias_falta: dias_falta});
   } catch (error) {
     var erro = 'Ocorreu algum erro tempo de execução do codigo linha 723 whatsappController';
     req.flash('erro', erro);
@@ -805,7 +825,8 @@ router.post('/whatsapp/charge/import', adminAuth, upload.single('arquivo'), asyn
         });
         setTimeout(function () {
           database.select('*').where({ codigo_cobranca: codigo_cobranca }).table('cobranca').then(dados => {
-            res.render('whatsapp/cobranca/index', { dados: dados, codigo_cobranca: codigo_cobranca });
+            var dias_falta = req.session.user.dias_falta
+            res.render('whatsapp/cobranca/index', { dados: dados, codigo_cobranca: codigo_cobranca, dias_falta: dias_falta});
           });
         }, 1000);
       });
@@ -888,7 +909,8 @@ router.get('/whatsapp/send/contact2', adminAuth, online, (req, res) => {
     erro = erro == undefined || erro.length == 0 ? undefined : erro;
     sucesso = sucesso == undefined || sucesso.length == 0 ? undefined : sucesso;
     database.select('*').table('contato').then(dados => {
-      res.render('whatsapp/contact/index_contact', { erro: erro, sucesso: sucesso, dados: dados })
+      var dias_falta = req.session.user.dias_falta
+      res.render('whatsapp/contact/index_contact', { erro: erro, sucesso: sucesso, dados: dados, dias_falta: dias_falta})
     });
   } catch (error) {
     var erro = 'Ocorreu algum erro tempo de execução do codigo linha 852 whatsappController';

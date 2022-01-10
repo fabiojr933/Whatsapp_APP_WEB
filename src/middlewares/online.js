@@ -30,7 +30,8 @@ function online(req, res, next){
                 var status = 'Off-line';
                 erro = 'Atenção sua sessão esta off-line, seu celular não esta conectado';
                 logger.info(erro);
-                res.render('whatsapp/status_off', { erro: erro, nome_empresa: nome_empresa, cnpj_empresa: cnpj_empresa, status: status });
+                var dias_falta = req.session.user.dias_falta
+                res.render('whatsapp/status_off', { erro: erro, nome_empresa: nome_empresa, cnpj_empresa: cnpj_empresa, status: status, dias_falta: dias_falta});
               });
           } else { 
             erro = 'Atenção sua sessão esta off-line, seu celular não esta conectado';

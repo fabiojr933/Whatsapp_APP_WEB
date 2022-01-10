@@ -12,7 +12,8 @@ exports.company_list = async (req, res) => {
         erro = (erro == undefined || erro.length == 0) ? undefined : erro;
         sucesso = (sucesso == undefined || sucesso.length == 0) ? undefined : sucesso;
         database.select('*').table('empresa').then(dados => {
-            res.render('company/index', { erro: erro, sucesso: sucesso, dados: dados });
+            var dias_falta = req.session.user.dias_falta
+            res.render('company/index', { erro: erro, sucesso: sucesso, dados: dados, dias_falta: dias_falta});
         }).catch(erro => {
             logger.error(erro);
             console.log(erro);
@@ -27,7 +28,8 @@ exports.company_list = async (req, res) => {
 
 exports.company_new = async (req, res) => {
     try {
-        res.render('company/new');
+        var dias_falta = req.session.user.dias_falta
+        res.render('company/new', {dias_falta: dias_falta});
     } catch (error) {
         var erro = 'Ocorreu algum erro tempo de execução do codigo linha 30 companyController';
         req.flash('erro', erro);
@@ -46,7 +48,8 @@ exports.company_update = async (req, res) => {
         }
         database.where({ id: id }).select('*').table('empresa').then(dados => {
             console.log(dados[0].nome_empresa);
-            res.render('company/edit', { dados: dados });
+            var dias_falta = req.session.user.dias_falta
+            res.render('company/edit', { dados: dados, dias_falta: dias_falta});
         }).catch(erro => {
             var erro = 'Erro ao buscar empresa, chame o suporte tecnico';
             req.flash('erro', erro);

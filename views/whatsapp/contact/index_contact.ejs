@@ -76,7 +76,7 @@
                                                       
                                                <% dados.forEach(element => { %> 
                                                 <div class="form-check form-check-inline" id="">                                                  
-                                                    <input class="form-check-input" type="checkbox" checked  id="contato" name="contato" value="<%= element.nome %>clear|<%= element.telefone %>|<%= element.empresa_cnpj %> ">
+                                                    <input class="form-check-input" type="checkbox" checked  id="contato" name="contato" value="<%= element.nome %>|<%= element.telefone %>|<%= element.empresa_cnpj %> ">
                                                     <label class="form-check-label" for="inlineCheckbox1">Id: - <%= element.id %> - <%= element.nome %> - Telefone: - <%= element.telefone %> </label>
                                                   </div><br>
                                                 <%  })  %>       

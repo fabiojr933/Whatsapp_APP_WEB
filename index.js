@@ -29,8 +29,8 @@ app.get('/', adminAuth, (req, res) => {
     sucesso = (sucesso == undefined || sucesso.length == 0) ? undefined : sucesso; 
     var erro = req.flash('erro');
     erro = (erro == undefined || erro.length == 0) ? undefined : erro; 
-    
-    res.render('index', {sucesso: sucesso, erro: erro });
+    var dias_falta = req.session.user.dias_falta
+    res.render('index', {sucesso: sucesso, erro: erro, dias_falta: dias_falta});
 });
 app.use('/', Route);
 app.use('/', whatsappController);
