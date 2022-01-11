@@ -96,7 +96,43 @@ ALTER TABLE contato ALTER COLUMN telefone TYPE numeric(10,0) USING telefone::num
 
 
 
+/*
 
+         select
+
+    -- DADOS CLIENTE
+    COALESCE(CON.NOME, CLI.NOME) AS "Nome cliente",
+    coalesce(con.fone, cli.fone) as "fone",
+
+    --PEDIDO
+    ped.valorliquido as "Valor pedido",             --A.NOME, '6699539490' as FONE, 'fox sistemas' as EMPRESA, A.CODIGO, A.CPFCNPJ
+    emp.nomefantasia as "Empresa",
+    CLI.CODIGO AS "Codigo cliente",
+    emp.cpfcnpj as "CPFCNPJ"
+
+
+from tvenpedido ped
+    left outer join testcondpagvenda cond on cond.empresa = ped.empresa
+                                         and cond.codigo = ped.condicaopagto
+    left outer join tvenvendedor ven on ven.empresa = ped.empresa
+                                    and ven.codigo = ped.vendedor
+    left outer join tgerempresa emp on emp.codigo = ped.empresa
+    left outer join trecclientegeral cli on cli.codigo = ped.cliente
+    left outer join tvenconsumidor con on con.codigo = ped.consumidor
+    left outer join tgercidade CIDCON on CIDCON.codigo = con.cidade
+    left outer join tgercidade CIDEMP on CIDEMP.codigo = emp.cidade
+    left outer join tgercidade CIDCLI on CIDCLI.codigo = cli.cidade
+    left outer join tgercidade CIDCOB on CIDCOB.codigo = cli.cidadecob
+
+where  ped.status='EFE'
+and (ped.empresa = :empresa)
+and (ped.data between :datainicial and :datafinal)
+and coalesce(con.FONE, cli.FONE) > '1' and
+      substring(coalesce(con.FONE, cli.FONE) from 1 for 3) in ('669', '668') and
+      char_length(coalesce(con.FONE, cli.FONE)) = '10'
+
+
+*/
 
 
 
