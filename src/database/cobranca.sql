@@ -3,8 +3,8 @@ PAR.EMPRESA,
 PAR.CLIENTE,
 sum(PAR.VALORPENDENTE) as VALORPENDENTE,
 CLG.NOME as NOMECLIENTE,
-'6699539490' as FONE,
---CLG.FONE,
+--'6699539490' as FONE,
+CLG.FONE,
 EMP.NOMEFANTASIA as NOMEEMPRESA
 from TRECPARCELA PAR
 left outer join TRECDOCUMENTO DCT on (DCT.EMPRESA = PAR.EMPRESA and DCT.CLIENTE = PAR.CLIENTE and DCT.TIPO = PAR.TIPO and DCT.DOCUMENTO = PAR.DOCUMENTO)
@@ -34,8 +34,14 @@ where PAR.IDRENEGOCIACAO is null and
       CLI.ATIVO = 'S' and
       PAR.EMPRESA = :EMPRESA and
       PAR.IDDESCONTO is null
+      AND   CLG.FONE > '1' and
+      substring(CLG.FONE from 1 for 3) IN ('669', '668') and
+      char_length(CLG.FONE) = '10'
+
       group by 1,2,4,5,6
+/*
 
-
-
+Os telefones da Vivo, por exemplo, eram iniciados pelos números 99, 98, 97, 96, 95, etc. Os números da Claro eram iniciados em 94, 92, 93, 91, e os da Oi em 89, 88, 87, 86, 85 e 84.
 */
+
+

@@ -26,10 +26,26 @@
                                         <div class="row">
 
 
-                                            <form action="" method="post">
+                                         
 
-                                                <div class="col-lg-12">
-                                                    <div class="card">
+                                           
+
+
+                                                    
+                <div style="text-align: center; display: none;" id="carregamento">
+                    <button class="btn btn-primary" type="button" disabled>
+                      <span class="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"></span>
+                      <span class="sr-only"> Carregando....Aguarde...</span>
+                    </button>
+                    <button class="btn btn-primary" type="button" disabled>
+                      <span class="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"></span>
+                      Carregando....Aguarde
+                    </button>
+                  </div><br>
+                  <div class="col-lg-12">
+                                               <form action="/whatsapp/getMessage" method="post">
+
+                                                    <div class="card" id="corpo">
                                                         <div class="card-body">
                                                             <h5 class="card-title">Configuração da mensagem</h5><br>
 
@@ -42,7 +58,7 @@
                                                                 </div>
                                                                 <div class="col-6">
                                                                     <label class="form-label">Nome cliente</label>
-                                                                    <input type="text" class="form-control"
+                                                                    <input type="text" class="form-control" id="cliente"
                                                                         name="cliente" placeholder="Nome cliente"
                                                                         required>
                                                                 </div>
@@ -57,15 +73,21 @@
                                                                         placeholder="Digite sua mensagem"
                                                                         required></textarea>
                                                                 </div><br>
-                                                            </div>
+                                                            </div><br>
+
+                                                            <div class="card">
+                                                                <input type="text" style="width: 100%; height:100px;" class="form-control" name="formato" id="formato"
+                                                                  readonly>
+                                                              </div>
 
                                                         </div>
                                                     </div>
+                                                    <button type="submit" class="btn btn-primary" onclick="carregamento_btn();">Enviar mensagem</button>
                                                 </div>
-                                                <button type="submit" class="btn btn-primary">Enviar mensagem</button>
+                                               
                                             </form>
 
-
+                                           
                                     </section>
 
                 </main>
@@ -73,3 +95,21 @@
     </body>
 
     </html>
+
+    <script>
+        function carregamento_btn() {
+          setTimeout(
+            document.getElementById('carregamento').style.display = 'block',
+            document.getElementById('corpo').style.display = 'none',             
+          ),7000
+        }
+      </script>
+      <script>
+          $('#mensagem').on('blur',function(){
+              var mensagem = $(this).val();
+              var cliente = document.querySelector('#cliente');
+              var nome_cliente = cliente.value;
+              var mensagem_formatada = nome_cliente + ' ' + mensagem + ' ' + '{Nome empresa}';
+              $('#formato').val(mensagem_formatada);
+          });
+      </script>

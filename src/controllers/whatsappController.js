@@ -21,7 +21,7 @@ router.get('/whatsapp/getMessage', (req, res) => {
     sucesso = sucesso == undefined || sucesso.length == 0 || sucesso == '' ? undefined : sucesso;
     var dias_falta = req.session.user.dias_falta
     var cnpj = req.session.user.cnpj;
-    res.render('whatsapp/getMessage', {erro: erro, sucesso: sucesso, dias_falta: dias_falta});
+    res.render('whatsapp/getMessage', { erro: erro, sucesso: sucesso, dias_falta: dias_falta });
   } catch (error) {
     var erro = 'Ocorreu algum erro tempo de execução do codigo whatsappController';
     req.flash('erro', erro);
@@ -29,8 +29,56 @@ router.get('/whatsapp/getMessage', (req, res) => {
     res.redirect('/');
   }
 });
+router.post('/whatsapp/getMessage', online, (req, res) => {
+  var { telefone, cliente, mensagem } = req.body;
+  var dias_falta = req.session.user.dias_falta;
+  var empresa = req.session.user.nome_empresa;
+  var session = req.session.user.session;
+  var servidor = req.session.user.servidor;
 
-router.get('/whatsapp/session', adminAuth, online, (req, res) => {
+  if (telefone == undefined || cliente == undefined || mensagem == undefined || session == undefined) {
+    var erro = 'Os campos são obrigatorios';
+    req.flash('erro', erro);
+    logger.error(error);
+    res.redirect('/');
+  } else {
+    console.log(session);
+    try {
+      var data = {
+        'session': session,
+        'number': '55' + telefone,
+        'text': cliente + ' ' + mensagem + ' ' + empresa
+      }
+      var config = {
+        method: 'POST',
+        url: servidor + '/sendText',
+        headers: {
+          'Content-Type': 'application/json',
+          'sessionkey': session
+        },
+        data: JSON.stringify(data)
+      };      
+      axios(config).then(function (response) {
+        if (response.data.result != 200) {
+          erro = 'Não foi possivel enviar as mensagem, servidor não esta respondendo \n chame o suporte tecnico para mais detalhe';
+          req.flash('erro', erro);
+          logger.error(erro);
+          res.redirect('/whatsapp/getMessage', { erro: erro });
+        }
+      })
+    } catch (error) {
+      erro = 'Não foi possivel enviar as mensagem, servidor não esta respondendo \n chame o suporte tecnico para mais detalhe';
+      req.flash('erro', erro);
+      logger.error(error);
+      res.redirect('/whatsapp/getMessage', { erro: erro });
+    }
+    sucesso = 'Mensagem esta sendo enviada para seu cliente, este processo pode demorar um pouco....';
+    req.flash('sucesso', sucesso);
+    res.redirect('/whatsapp/getMessage');
+  }
+});
+
+router.get('/whatsapp/session', adminAuth, (req, res) => {
   try {
     var cnpj = req.session.user.cnpj;
     var dias_falta = req.session.user.dias_falta

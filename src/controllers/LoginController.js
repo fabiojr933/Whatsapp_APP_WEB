@@ -35,9 +35,10 @@ exports.authenticate = async (req, res) => {
 
                 var diff = moment(data_licenca_final, 'DD/MM/YYYY').diff(moment(data_atual, 'DD/MM/YYYY'));
                 var dias_falta = moment.duration(diff).asDays();
+                dias_falta +=1;
                 logger.info('dias para acabar a licença ' + dias_falta);
 
-                if (dias_falta <= 0) {
+                if (dias_falta < 0) {
                     database.where({ id_empresa: dados[0].id }).update({ 'liberado': 'NAO' }).table('licenca').then(erro => {
                         erro = 'Atenção sua licença foi expirado, entre em contato com o suporte!';
                         req.flash('erro', erro);
@@ -52,6 +53,7 @@ exports.authenticate = async (req, res) => {
                                     sucesso = 'Bem vindo(a) ' + dados[0].nome_empresa;
                                     req.session.user = {
                                         id: dados[0].id,
+                                        session: dados[0].session,
                                         nome_empresa: dados[0].nome_empresa,
                                         email: dados[0].email,
                                         token: dados[0].token,
